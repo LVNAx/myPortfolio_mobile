@@ -10,8 +10,9 @@ void main() {
 
     // InfoCard identitas pemilik.
     expect(find.text('NPM'), findsOneWidget);
-    expect(find.text('Burhan'), findsOneWidget);
-    expect(find.text('PBP A'), findsOneWidget);
+    expect(find.text('2506541250'), findsOneWidget);
+    expect(find.text('Nugraha Kautsarrizqi Caksana'), findsOneWidget);
+    expect(find.text('PBP-B'), findsOneWidget);
 
     // Tiga tombol menu aksi.
     expect(find.text('Lihat Proyek'), findsOneWidget);
