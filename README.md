@@ -15,6 +15,10 @@ Aplikasi mobile portofolio pribadi yang dibangun menggunakan **Flutter (Dart)**.
 - 3 **InfoCard** yang menampilkan NPM, Name, dan Class
 - 3 **ItemCard** (Lihat Proyek, Tambah Proyek, Logout) dengan warna latar berbeda yang disimpan di model `ItemHomepage` (tanpa if-else)
 - **SnackBar** "Kamu telah menekan tombol [Nama Tombol]!" saat kartu ditekan
+- **Navigasi** antar halaman dengan `Navigator.push`: *Lihat Proyek* membuka daftar proyek dan *Tambah Proyek* membuka formulir (`lib/project_page.dart`). Halaman tujuan disimpan di model `ItemHomepage` (atribut `page`), jadi `ItemCard` tetap tanpa if-else
+- **Drawer** (menu samping) dengan menu yang sama seperti `ItemCard`, plus tombol Beranda
+- **Layout lebih rapi**: `InfoCard` dibagi rata dengan `Expanded` dan `IntrinsicHeight` (tinggi sama walau nama panjang), serta lebar konten dibatasi 800 px agar kartu tidak melebar berlebihan di layar lebar
+- Tombol *Simpan* pada formulir Tambah Proyek baru menampilkan SnackBar, karena penyimpanan data belum dibuat
 
 ## Tech Stack
 
