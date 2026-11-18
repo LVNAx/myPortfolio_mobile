@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:myportofolio_mobile/widgets/left_drawer.dart';
 
 // Data satu proyek pada daftar proyek.
 class _Project {
@@ -38,6 +39,8 @@ class ProjectListPage extends StatelessWidget {
         // foregroundColor juga mewarnai tombol kembali pada AppBar.
         foregroundColor: Colors.white,
       ),
+      // Drawer yang sama dengan halaman lain agar navigasi tetap tersedia.
+      drawer: const LeftDrawer(),
       body: Center(
         // Membatasi lebar konten agar tetap nyaman dibaca di layar lebar.
         child: ConstrainedBox(
@@ -56,65 +59,6 @@ class ProjectListPage extends StatelessWidget {
                 ),
               );
             }).toList(),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// Halaman tujuan tombol "Tambah Proyek": tampilan formulir.
-// Penyimpanan data belum dibuat, jadi tombol Simpan hanya menampilkan SnackBar.
-class AddProjectPage extends StatelessWidget {
-  const AddProjectPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Tambah Proyek',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
-      ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 800),
-          child: ListView(
-            padding: const EdgeInsets.all(16.0),
-            children: [
-              const TextField(
-                decoration: InputDecoration(
-                  labelText: 'Nama Proyek',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 16.0),
-              const TextField(
-                maxLines: 3,
-                decoration: InputDecoration(
-                  labelText: 'Deskripsi',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 16.0),
-              FilledButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context)
-                    ..hideCurrentSnackBar()
-                    ..showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Fitur menyimpan proyek akan dibuat di tugas berikutnya.',
-                        ),
-                      ),
-                    );
-                },
-                child: const Text('Simpan'),
-              ),
-            ],
           ),
         ),
       ),

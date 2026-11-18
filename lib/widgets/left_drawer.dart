@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:myportofolio_mobile/menu.dart';
+import 'package:myportofolio_mobile/project_form.dart';
 import 'package:myportofolio_mobile/project_page.dart';
 
 // Drawer (menu samping) yang dipakai di beberapa halaman agar pengguna
@@ -47,6 +48,19 @@ class LeftDrawer extends StatelessWidget {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => MyHomePage()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.add_circle_outline),
+            title: const Text('Add Project'),
+            // Navigasi ke halaman tambah proyek.
+            onTap: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ProjectFormPage(),
+                ),
               );
             },
           ),
