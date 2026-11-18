@@ -1,7 +1,7 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:myportofolio_mobile/menu.dart';
-import 'package:myportofolio_mobile/project_form.dart';
-import 'package:myportofolio_mobile/project_page.dart';
+import 'package:myportofolio_mobile/screens/menu.dart';
+import 'package:myportofolio_mobile/screens/project_form.dart';
+import 'package:myportofolio_mobile/screens/project_list.dart';
 
 // Drawer (menu samping) yang dipakai di beberapa halaman agar pengguna
 // selalu bisa berpindah halaman dari mana saja.
