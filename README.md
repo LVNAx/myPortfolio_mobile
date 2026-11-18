@@ -11,19 +11,33 @@ Aplikasi mobile portofolio pribadi yang dibangun menggunakan **Flutter (Dart)**.
 
 ## Fitur
 
-- Halaman menu utama berupa `StatelessWidget` (`lib/menu.dart`), terpisah dari `main.dart`
+- Halaman menu utama berupa `StatelessWidget` (`lib/screens/menu.dart`), terpisah dari `main.dart`
 - 3 **InfoCard** yang menampilkan NPM, Name, dan Class
 - 3 **ItemCard** (Lihat Proyek, Tambah Proyek, Logout) dengan warna latar berbeda yang disimpan di model `ItemHomepage` (tanpa if-else)
 - **SnackBar** "Kamu telah menekan tombol [Nama Tombol]!" saat kartu ditekan
-- **Navigasi** antar halaman dengan `Navigator.push`: *Lihat Proyek* membuka daftar proyek dan *Tambah Proyek* membuka formulir (`lib/project_page.dart`). Halaman tujuan disimpan di model `ItemHomepage` (atribut `page`), jadi `ItemCard` tetap tanpa if-else
-- **Drawer** (menu samping) dengan menu yang sama seperti `ItemCard`, plus tombol Beranda
+- **Navigasi** antar halaman dengan `Navigator.push`: *Lihat Proyek* membuka daftar proyek (`lib/screens/project_list.dart`) dan *Tambah Proyek* membuka formulir (`lib/screens/project_form.dart`). Halaman tujuan disimpan di model `ItemHomepage` (atribut `page`), jadi `ItemCard` tetap tanpa if-else
+- **Drawer** (`LeftDrawer` di `lib/widgets/left_drawer.dart`) dengan menu Home, Add Project, dan View Projects, dipasang di semua halaman. Perpindahan lewat Drawer memakai `Navigator.pushReplacement`
+- **Form tambah proyek** (`ProjectFormPage`, `StatefulWidget`): `Form` dengan `GlobalKey`, `TextFormField` (nama, deskripsi, teknologi, tautan), `DropdownButtonFormField` (kategori), validasi field wajib, dan `AlertDialog` yang menampilkan data yang diisi. Data belum disimpan ke database
 - **Layout lebih rapi**: `InfoCard` dibagi rata dengan `Expanded` dan `IntrinsicHeight` (tinggi sama walau nama panjang), serta lebar konten dibatasi 800 px agar kartu tidak melebar berlebihan di layar lebar
-- Tombol *Simpan* pada formulir Tambah Proyek baru menampilkan SnackBar, karena penyimpanan data belum dibuat
 
 ## Tech Stack
 
 - Flutter & Dart
-- Material 3 (`ColorScheme.fromSeed`)
+- Material 3 (`ColorScheme.fromSeed`) melalui paket `material_ui`
+
+## Struktur Folder
+
+```
+lib/
+├── main.dart                 # entry point + MaterialApp + tema
+├── screens/                  # halaman (route)
+│   ├── menu.dart             # MyHomePage, InfoCard, ItemHomepage
+│   ├── project_form.dart     # ProjectFormPage (form tambah proyek)
+│   └── project_list.dart     # ProjectListPage (daftar proyek)
+└── widgets/                  # komponen yang dipakai ulang
+    ├── left_drawer.dart      # LeftDrawer (menu samping)
+    └── project_card.dart     # ItemCard (kartu tombol menu)
+```
 
 ## Instruksi Setup
 
