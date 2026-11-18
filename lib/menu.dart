@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:myportofolio_mobile/project_page.dart';
+import 'package:myportofolio_mobile/widgets/left_drawer.dart';
 
 // Model data sederhana untuk merepresentasikan satu tombol menu.
 // Warna dan halaman tujuan disimpan di model sehingga ItemCard tidak perlu
@@ -68,52 +69,8 @@ class MyHomePage extends StatelessWidget {
         // foregroundColor juga mewarnai ikon menu (hamburger) pada AppBar.
         foregroundColor: Colors.white,
       ),
-      // Drawer: menu samping untuk berpindah halaman.
-      drawer: Drawer(
-        child: ListView(
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(color: colorScheme.primary),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text(
-                    nama,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18.0,
-                    ),
-                  ),
-                  const SizedBox(height: 4.0),
-                  Text(
-                    '$npm - $kelas',
-                    style: const TextStyle(color: Colors.white70),
-                  ),
-                ],
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.home),
-              title: const Text('Beranda'),
-              // Menutup drawer; pengguna tetap di halaman utama.
-              onTap: () => Navigator.pop(context),
-            ),
-            // Daftar menu drawer memakai data items yang sama dengan ItemCard.
-            ...items.map((ItemHomepage item) {
-              return ListTile(
-                leading: Icon(item.icon, color: item.color),
-                title: Text(item.name),
-                onTap: () {
-                  Navigator.pop(context);
-                  item.open(context);
-                },
-              );
-            }),
-          ],
-        ),
-      ),
+      // Drawer: menu samping untuk berpindah halaman (lihat widgets/left_drawer.dart).
+      drawer: const LeftDrawer(),
       // SingleChildScrollView mencegah "BOTTOM OVERFLOWED" di layar pendek.
       body: SingleChildScrollView(
         // Center + ConstrainedBox membatasi lebar konten agar kartu tidak

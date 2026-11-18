@@ -72,16 +72,17 @@ void main() {
 
     await tester.tap(find.byIcon(Icons.menu));
     await tester.pumpAndSettle();
-    expect(find.text('Beranda'), findsOneWidget);
+    expect(find.text('Home'), findsOneWidget);
+    expect(find.text('My Portfolio'), findsOneWidget);
 
-    // Menu drawer "Tambah Proyek" menutup drawer lalu membuka halaman formulir.
+    // Menu drawer "View Projects" membuka halaman daftar proyek.
     await tester.tap(
       find.descendant(
         of: find.byType(Drawer),
-        matching: find.text('Tambah Proyek'),
+        matching: find.text('View Projects'),
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Nama Proyek'), findsOneWidget);
+    expect(find.text('Website Portofolio (Django)'), findsOneWidget);
   });
 }
