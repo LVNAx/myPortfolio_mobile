@@ -4,8 +4,7 @@ import 'package:myportofolio_mobile/screens/certification_form.dart';
 import 'package:myportofolio_mobile/screens/project_form.dart';
 import 'package:myportofolio_mobile/screens/project_list.dart';
 
-// Drawer (menu samping) yang dipakai di beberapa halaman agar pengguna
-// selalu bisa berpindah halaman dari mana saja.
+/// Menu samping yang dipakai di semua halaman agar navigasi selalu seragam.
 class LeftDrawer extends StatelessWidget {
   const LeftDrawer({super.key});
 
@@ -42,9 +41,7 @@ class LeftDrawer extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.home_outlined),
             title: const Text('Home'),
-            // Navigasi ke halaman utama portofolio.
-            // pushReplacement mengganti halaman saat ini (bukan menumpuknya),
-            // sehingga tombol Back tidak menumpuk halaman yang sama.
+            // pushReplacement mengganti halaman saat ini, bukan menumpuknya.
             onTap: () {
               Navigator.pushReplacement(
                 context,
@@ -55,7 +52,6 @@ class LeftDrawer extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.add_circle_outline),
             title: const Text('Add Project'),
-            // Navigasi ke halaman tambah proyek.
             onTap: () {
               Navigator.pushReplacement(
                 context,
@@ -68,7 +64,6 @@ class LeftDrawer extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.workspace_premium_outlined),
             title: const Text('Add Certification'),
-            // Navigasi ke halaman tambah sertifikasi.
             onTap: () {
               Navigator.pushReplacement(
                 context,
@@ -81,7 +76,6 @@ class LeftDrawer extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.folder_outlined),
             title: const Text('View Projects'),
-            // Navigasi ke halaman daftar proyek.
             onTap: () {
               Navigator.pushReplacement(
                 context,

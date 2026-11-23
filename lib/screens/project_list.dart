@@ -1,7 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
 
-// Data satu proyek pada daftar proyek.
+/// Data satu proyek pada daftar proyek.
 class _Project {
   final String title;
   final String description;
@@ -10,7 +10,7 @@ class _Project {
   const _Project(this.title, this.description, this.icon);
 }
 
-// Halaman tujuan tombol "Lihat Proyek": menampilkan daftar proyek.
+/// Halaman daftar proyek.
 class ProjectListPage extends StatelessWidget {
   const ProjectListPage({super.key});
 
@@ -36,13 +36,10 @@ class ProjectListPage extends StatelessWidget {
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         backgroundColor: Theme.of(context).colorScheme.primary,
-        // foregroundColor juga mewarnai tombol kembali pada AppBar.
         foregroundColor: Colors.white,
       ),
-      // Drawer yang sama dengan halaman lain agar navigasi tetap tersedia.
       drawer: const LeftDrawer(),
       body: Center(
-        // Membatasi lebar konten agar tetap nyaman dibaca di layar lebar.
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 800),
           child: ListView(

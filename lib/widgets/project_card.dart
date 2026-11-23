@@ -9,11 +9,9 @@ class ItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      // Warna latar diambil dari atribut color milik item.
       color: item.color,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
-        // Aksi ketika kartu ditekan: SnackBar, lalu pindah halaman bila ada.
         onTap: () => item.open(context),
         child: Container(
           padding: const EdgeInsets.all(8),

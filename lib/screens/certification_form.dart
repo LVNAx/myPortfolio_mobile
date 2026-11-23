@@ -16,10 +16,8 @@ class CertificationFormPage extends StatefulWidget {
 }
 
 class _CertificationFormPageState extends State<CertificationFormPage> {
-  // Kunci untuk mengakses FormState (validate() dan reset()).
   final _formKey = GlobalKey<FormState>();
 
-  // Controller membaca dan mengubah teks pada kolom.
   final _titleController = TextEditingController();
   final _issuerController = TextEditingController();
   final _dateController = TextEditingController();
@@ -39,7 +37,6 @@ class _CertificationFormPageState extends State<CertificationFormPage> {
 
   @override
   void dispose() {
-    // Controller harus dibuang agar tidak terjadi kebocoran memori.
     _titleController.dispose();
     _issuerController.dispose();
     _dateController.dispose();
@@ -72,7 +69,6 @@ class _CertificationFormPageState extends State<CertificationFormPage> {
     });
   }
 
-  // Dekorasi yang sama untuk semua kolom agar tampilan konsisten.
   InputDecoration _decoration(String label, String hint, IconData icon) {
     return InputDecoration(
       labelText: label,
@@ -82,9 +78,7 @@ class _CertificationFormPageState extends State<CertificationFormPage> {
     );
   }
 
-  // Dipanggil saat tombol Simpan ditekan.
   void _save() {
-    // validate() menjalankan semua validator; false bila ada yang menolak.
     if (!_formKey.currentState!.validate()) return;
 
     // Isian disalin dulu karena form akan dikosongkan setelah dialog ditutup.
@@ -99,7 +93,6 @@ class _CertificationFormPageState extends State<CertificationFormPage> {
       builder: (context) {
         return AlertDialog(
           title: const Text('Sertifikasi berhasil ditambahkan!'),
-          // Ringkasan seluruh isian formulir.
           content: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -116,7 +109,6 @@ class _CertificationFormPageState extends State<CertificationFormPage> {
             TextButton(
               child: const Text('OK'),
               onPressed: () {
-                // Menutup dialog, lalu mengosongkan formulir.
                 Navigator.pop(context);
                 _resetForm();
               },
@@ -147,11 +139,9 @@ class _CertificationFormPageState extends State<CertificationFormPage> {
           'Add Certification Form',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        // Warna tema yang sama dengan halaman utama.
         backgroundColor: colorScheme.primary,
         foregroundColor: Colors.white,
       ),
-      // Drawer yang sama dengan halaman lain agar navigasi tetap tersedia.
       drawer: const LeftDrawer(),
       body: Form(
         key: _formKey,
@@ -171,7 +161,6 @@ class _CertificationFormPageState extends State<CertificationFormPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // === Nama Sertifikasi ===
                     TextFormField(
                       controller: _titleController,
                       textInputAction: TextInputAction.next,
@@ -187,7 +176,6 @@ class _CertificationFormPageState extends State<CertificationFormPage> {
                     ),
                     const SizedBox(height: 16.0),
 
-                    // === Penerbit ===
                     TextFormField(
                       controller: _issuerController,
                       textInputAction: TextInputAction.next,
@@ -203,7 +191,6 @@ class _CertificationFormPageState extends State<CertificationFormPage> {
                     ),
                     const SizedBox(height: 16.0),
 
-                    // === Kategori (pilihan tetap -> dropdown) ===
                     DropdownButtonFormField<String>(
                       // isExpanded mencegah overflow saat label kategori panjang.
                       isExpanded: true,
@@ -229,7 +216,6 @@ class _CertificationFormPageState extends State<CertificationFormPage> {
                     ),
                     const SizedBox(height: 16.0),
 
-                    // === Tanggal Terbit (tanggal -> date picker) ===
                     TextFormField(
                       controller: _dateController,
                       // readOnly: teks tidak diketik, tanggal dipilih lewat picker.
@@ -247,10 +233,8 @@ class _CertificationFormPageState extends State<CertificationFormPage> {
                     ),
                     const SizedBox(height: 16.0),
 
-                    // === Bukti Sertifikasi (URL opsional) ===
                     TextFormField(
                       controller: _urlController,
-                      // Papan ketik khusus URL.
                       keyboardType: TextInputType.url,
                       textInputAction: TextInputAction.done,
                       decoration: _decoration(
@@ -265,7 +249,6 @@ class _CertificationFormPageState extends State<CertificationFormPage> {
                     ),
                     const SizedBox(height: 24.0),
 
-                    // === Tombol Simpan ===
                     ElevatedButton(
                       style: ButtonStyle(
                         backgroundColor: WidgetStateProperty.all(

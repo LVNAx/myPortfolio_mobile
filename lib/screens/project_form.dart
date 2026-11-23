@@ -1,9 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
 
-// Halaman formulir untuk menambah proyek.
-// StatefulWidget dipakai karena halaman ini menyimpan data yang berubah
-// (isian pengguna) dan harus menggambar ulang lewat setState().
+/// Halaman formulir untuk menambah proyek (data belum disimpan).
 class ProjectFormPage extends StatefulWidget {
   const ProjectFormPage({super.key});
 
@@ -12,10 +10,8 @@ class ProjectFormPage extends StatefulWidget {
 }
 
 class _ProjectFormPageState extends State<ProjectFormPage> {
-  // Kunci untuk mengakses state Form (validasi dan reset).
   final _formKey = GlobalKey<FormState>();
 
-  // Variabel penampung isian dari tiap field.
   String _projectName = "";
   String _description = "";
   String _category = "Web Development"; // default
@@ -38,11 +34,9 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
         backgroundColor: Colors.indigo,
         foregroundColor: Colors.white,
       ),
-      // Drawer yang sama dengan halaman utama, agar navigasi tetap tersedia.
       drawer: const LeftDrawer(),
       body: Form(
         key: _formKey,
-        // SingleChildScrollView: form bisa di-scroll bila layar tidak muat.
         child: SingleChildScrollView(
           // Center + ConstrainedBox membatasi lebar form di layar lebar.
           child: Center(
@@ -51,7 +45,6 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // === Project Name ===
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: TextFormField(
@@ -62,13 +55,11 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                           borderRadius: BorderRadius.circular(5.0),
                         ),
                       ),
-                      // onChanged dijalankan tiap isi field berubah.
                       onChanged: (String? value) {
                         setState(() {
                           _projectName = value!;
                         });
                       },
-                      // validator mengembalikan pesan error bila input tidak valid.
                       validator: (String? value) {
                         if (value == null || value.trim().isEmpty) {
                           return "Nama proyek tidak boleh kosong!";
@@ -78,7 +69,6 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                     ),
                   ),
 
-                  // === Description ===
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: TextFormField(
@@ -104,7 +94,6 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                     ),
                   ),
 
-                  // === Category ===
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: DropdownButtonFormField<String>(
@@ -132,7 +121,6 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                     ),
                   ),
 
-                  // === Technologies ===
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: TextFormField(
@@ -151,7 +139,6 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                     ),
                   ),
 
-                  // === Project Link ===
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: TextFormField(
@@ -170,7 +157,6 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                     ),
                   ),
 
-                  // === Tombol Simpan ===
                   Align(
                     alignment: Alignment.bottomCenter,
                     child: Padding(
@@ -182,7 +168,6 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                           ),
                         ),
                         onPressed: () {
-                          // validate() menjalankan semua validator pada form.
                           if (_formKey.currentState!.validate()) {
                             showDialog(
                               context: context,
@@ -191,7 +176,6 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                                   title: const Text(
                                     'Proyek berhasil ditambahkan!',
                                   ),
-                                  // Menampilkan seluruh isian formulir.
                                   content: SingleChildScrollView(
                                     child: Column(
                                       crossAxisAlignment:
@@ -209,7 +193,6 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                                     TextButton(
                                       child: const Text('OK'),
                                       onPressed: () {
-                                        // Menutup dialog, lalu mengosongkan form.
                                         Navigator.pop(context);
                                         _formKey.currentState!.reset();
                                         // reset() hanya mengosongkan tampilan field,
