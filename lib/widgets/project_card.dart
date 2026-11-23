@@ -9,11 +9,9 @@ class ItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      // Warna latar diambil dari atribut color milik item.
       color: item.color,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
-        // Aksi ketika kartu ditekan: SnackBar, lalu pindah halaman bila ada.
         onTap: () => item.open(context),
         child: Container(
           padding: const EdgeInsets.all(8),
@@ -26,6 +24,10 @@ class ItemCard extends StatelessWidget {
                 Text(
                   item.name,
                   textAlign: TextAlign.center,
+                  // Maksimal 2 baris agar nama panjang tidak overflow di
+                  // layar sempit.
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(color: Colors.white),
                 ),
               ],

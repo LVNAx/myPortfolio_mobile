@@ -33,6 +33,8 @@ void main() {
   ) async {
     await tester.pumpWidget(const MyApp());
 
+    // Kartu Logout ada di baris kedua grid, jadi scroll dulu seperti pengguna.
+    await tester.ensureVisible(find.text('Logout'));
     await tester.tap(find.text('Logout'));
     await tester.pumpAndSettle();
 

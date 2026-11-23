@@ -13,11 +13,16 @@ Aplikasi mobile portofolio pribadi yang dibangun menggunakan **Flutter (Dart)**.
 
 - Halaman menu utama berupa `StatelessWidget` (`lib/screens/menu.dart`), terpisah dari `main.dart`
 - 3 **InfoCard** yang menampilkan NPM, Name, dan Class
-- 3 **ItemCard** (Lihat Proyek, Tambah Proyek, Logout) dengan warna latar berbeda yang disimpan di model `ItemHomepage` (tanpa if-else)
+- 5 **ItemCard** (Lihat Proyek, Tambah Proyek, Lihat Sertifikasi, Tambah Sertifikasi, Logout) dengan warna latar berbeda yang disimpan di model `ItemHomepage` (tanpa if-else)
 - **SnackBar** "Kamu telah menekan tombol [Nama Tombol]!" saat kartu ditekan
 - **Navigasi** antar halaman dengan `Navigator.push`: *Lihat Proyek* membuka daftar proyek (`lib/screens/project_list.dart`) dan *Tambah Proyek* membuka formulir (`lib/screens/project_form.dart`). Halaman tujuan disimpan di model `ItemHomepage` (atribut `page`), jadi `ItemCard` tetap tanpa if-else
-- **Drawer** (`LeftDrawer` di `lib/widgets/left_drawer.dart`) dengan menu Home, Add Project, dan View Projects, dipasang di semua halaman. Perpindahan lewat Drawer memakai `Navigator.pushReplacement`
+- **Drawer** (`LeftDrawer` di `lib/widgets/left_drawer.dart`) dengan menu Home, Add Project, Add Certification, View Certifications, dan View Projects, dipasang di semua halaman. Perpindahan lewat Drawer memakai `Navigator.pushReplacement`
 - **Form tambah proyek** (`ProjectFormPage`, `StatefulWidget`): `Form` dengan `GlobalKey`, `TextFormField` (nama, deskripsi, teknologi, tautan), `DropdownButtonFormField` (kategori), validasi field wajib, dan `AlertDialog` yang menampilkan data yang diisi. Data belum disimpan ke database
+- **Form tambah sertifikasi** (`CertificationFormPage`, `lib/screens/certification_form.dart`) dengan kolom yang mengikuti model `Certification` pada website Django: nama sertifikasi dan penerbit (`TextFormField`), kategori (`DropdownButtonFormField`), tanggal terbit (`showDatePicker`), dan bukti sertifikasi berupa URL opsional (papan ketik URL). Validasi menolak isian kosong atau hanya spasi, tag HTML, teks terlalu panjang, dan URL tanpa `http(s)://`. Setelah valid, tombol Save menampilkan ringkasan isian dalam `AlertDialog`
+- **Daftar sertifikasi** (`CertificationListPage`): sertifikasi yang disimpan dari form tampil terurut dari tanggal terbit terbaru (seperti `ordering` pada Django). Ketuk untuk melihat detail, geser ke kiri untuk menghapus. Tersedia keadaan kosong dengan tombol menuju form
+- **Batalkan (undo)**: SnackBar setelah menyimpan atau menghapus punya tombol Batalkan. Form juga punya tombol **Reset**
+- **Data di memori**: `CertificationStore` (`ChangeNotifier`) dibagikan ke semua halaman lewat `CertificationScope` (`InheritedNotifier`), tanpa paket tambahan. Data hilang saat aplikasi ditutup karena belum memakai database
+- **Logika dipisah dari tampilan**: model dan store di `lib/models/`, validator dan pemformat tanggal di `lib/utils/`, semuanya punya unit test
 - **Layout lebih rapi**: `InfoCard` dibagi rata dengan `Expanded` dan `IntrinsicHeight` (tinggi sama walau nama panjang), serta lebar konten dibatasi 800 px agar kartu tidak melebar berlebihan di layar lebar
 
 ## Tech Stack
@@ -33,8 +38,18 @@ lib/
 ├── screens/                  # halaman (route)
 │   ├── menu.dart             # MyHomePage, InfoCard, ItemHomepage
 │   ├── project_form.dart     # ProjectFormPage (form tambah proyek)
+│   ├── certification_form.dart # CertificationFormPage (form tambah sertifikasi)
+│   ├── certification_list.dart # CertificationListPage (daftar sertifikasi)
 │   └── project_list.dart     # ProjectListPage (daftar proyek)
+├── models/
+│   ├── certification.dart        # Certification, CertificationCategory
+│   └── certification_store.dart  # CertificationStore (data di memori)
+├── utils/
+│   ├── date_format.dart      # formatIsoDate
+│   └── validators.dart       # fungsi validator formulir
 └── widgets/                  # komponen yang dipakai ulang
+    ├── certification_scope.dart          # membagikan store ke semua halaman
+    ├── certification_summary_dialog.dart # dialog ringkasan sertifikasi
     ├── left_drawer.dart      # LeftDrawer (menu samping)
     └── project_card.dart     # ItemCard (kartu tombol menu)
 ```
@@ -136,3 +151,52 @@ Di dalam `build(BuildContext context)`, `context` adalah posisi widget itu sendi
 **Hot reload** menyuntikkan kode Dart yang baru ke Dart VM yang sedang berjalan lalu membangun ulang widget tree, jadi perubahan tampilan langsung kelihatan dan **state tetap dipertahankan**. **Hot restart** memuat ulang seluruh kode dan menjalankan `main()` dari awal, sehingga semua state kembali ke nilai awal, tapi tetap lebih cepat daripada menjalankan ulang aplikasi dari nol.
 
 Hot reload ngga cukup, dan harus hot restart, kalo kita mengubah `main()`, nilai awal variabel global atau field `static`, `initState`, mengubah enum, atau mengubah jenis class (misalnya `StatelessWidget` jadi `StatefulWidget`). **Full restart** (stop lalu `flutter run` lagi) diperlukan kalo kita mengubah kode native (folder `android/`, `ios/`, `web/`), menambah dependensi di `pubspec.yaml`, atau mengubah aset, izin (permission), dan konfigurasi Gradle.
+
+
+### Tugas 8
+
+## Progress Mingguan
+| Hari / Tanggal | Progress |
+|---|---|
+| Senin, 16 November | - |
+| Selasa, 17 November | - |
+| Rabu, 18 November | Menyelesaikan Tutorial 9: `LeftDrawer`, `ProjectFormPage`, dialog data, navigasi tombol, dan refactor ke `screens/` dan `widgets/` |
+| Kamis, 19 November | - |
+| Jumat, 20 November | - |
+| Sabtu, 21 November | - |
+| Minggu, 22 November | - |
+| Senin, 23 November | Mengerjakan Tugas 8: memilih model `Certification` dari website Django, membuat validator, halaman `CertificationFormPage`, kartu aksi dan opsi Drawer, lalu menambah model, penyimpanan di memori, halaman daftar, Batalkan, Reset, test, dan README |
+
+## AI Disclosure
+- **[Chat 1-Model: Claude Sonnet-5 High](https://claude.ai/share/77eb76f7-aa6d-4c10-a73c-860898f3eee1)** Digunakan untuk memahami dan menguasai materi mengenai navigasi, layouts, forms, dan elemen input
+- **[Chat 2-Model: Claude Sonnet-5 High](https://claude.ai/share/56881d70-3dfd-4b6c-820c-6c3fbcd467d2)** sama seperti yang sebelumnya, ia digunakan untuk memahami kode
+- **[Chat 3-Model: Gemini Hydrogen High](https://share.gemini.google/o6mJXwZeD2On)** sama seperti yang sebelumnya, ia digunakan untuk memahami kode
+
+
+1. Jelaskan perbedaan antara `Navigator.push()`, `Navigator.pushReplacement()`, dan `Navigator.pop()`. Metode apa yang digunakan untuk membuka formulir dari kartu aksi? Jelaskan juga bagaimana opsi Home di drawer membawa pengguna kembali ke halaman utama.
+
+`Navigator` mengelola halaman sebagai **tumpukan (stack)**. `push()` **menambahkan** halaman baru di atas tumpukan, jadi halaman lama tetap ada di bawahnya dan pengguna bisa kembali. `pop()` **membuang** halaman paling atas sehingga pengguna kembali ke halaman di bawahnya. `pushReplacement()` **mengganti** halaman paling atas dengan halaman baru, jadi halaman lama hilang dari tumpukan dan ngga bisa dikembalikan dengan tombol Back.
+
+Untuk membuka formulir dari kartu aksi, saya pakai `Navigator.push()` (di method `ItemHomepage.open`, `Navigator.of(context).push(MaterialPageRoute(builder: destination))`). Hasilnya halaman utama tetap di bawah formulir, sehingga tombol Back bawaan perangkat atau browser bisa kembali ke halaman utama.
+
+Opsi Home di drawer memakai `Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MyHomePage()))`. Halaman formulir yang sedang tampil diganti dengan halaman utama yang baru. Satu hal yang saya perhatikan: kalau formulir dibuka dari kartu, di bawahnya sudah ada halaman utama, jadi setelah menekan Home akan ada dua halaman utama di tumpukan (tampilannya sama, dan tombol Back tetap kembali ke halaman utama). Sedangkan kalau formulir dibuka dari drawer, halaman utama sebelumnya yang tergantikan, jadi tumpukannya tetap rapi.
+
+2. Bagaimana susunan `Scaffold`, `AppBar`, dan `Drawer` membantu menjaga struktur halaman tetap konsisten? Berikan satu contoh penggunaan warna tema portofolio di lebih dari satu halaman.
+
+`Scaffold` itu kerangka standar halaman: ia menyediakan slot `appBar`, `drawer`, dan `body`, serta tempat SnackBar muncul. Karena semua halaman (utama, daftar proyek, form proyek, form sertifikasi) memakai kerangka yang sama, posisi judul, ikon menu, dan isi halaman selalu sama, dan pengguna langsung tahu cara memakainya. `Drawer` kita taruh sebagai widget terpisah, yaitu `LeftDrawer`, lalu dipasang dengan `drawer: const LeftDrawer()` di setiap halaman, jadi menu navigasinya selalu seragam dan kalau mau menambah menu cukup mengubah satu berkas.
+
+Contoh warna tema: `Theme.of(context).colorScheme.primary` (turunan dari `Colors.indigo` di `ColorScheme.fromSeed`) dipakai sebagai warna `AppBar` di halaman utama (`screens/menu.dart`) dan di halaman form sertifikasi (`screens/certification_form.dart`), serta sebagai warna tombol Save di form tersebut. Jadi kalau seed warna di `main.dart` diganti, warna semua halaman ikut berubah.
+
+3. Mengapa tata letak tersebut dipilih untuk formulir? Jelaskan peran widget pengatur jarak dan widget penggulir ketika ruang layar terbatas.
+
+Formulirnya disusun dalam satu `Column` vertikal karena kolomnya diisi berurutan dari atas ke bawah (nama, penerbit, kategori, tanggal, URL, lalu tombol Reset dan Save), dan `crossAxisAlignment.stretch` membuat semua kolom selebar layar. Widget pengatur jarak memberi ruang bernapas supaya kolom ngga menempel satu sama lain dan mudah disentuh jari: `Padding` (16 di sekeliling form), `Column(spacing: 16)` untuk jarak antar kolom, dan `SizedBox` untuk jarak tambahan sebelum tombol.
+
+Widget penggulir, yaitu `SingleChildScrollView`, penting ketika ruang layar terbatas. Saat papan ketik muncul, `Scaffold` mengecilkan area body, sehingga kolom di bawah bisa tertutup. Karena isinya bisa di-scroll, semua kolom dan tombol Save tetap terjangkau, dan `keyboardDismissBehavior.onDrag` menutup papan ketik saat form digeser. Untuk layar lebar (misalnya Chrome), `Center` + `ConstrainedBox(maxWidth: 800)` mencegah kolom melebar berlebihan. Saya juga menguji ini lewat test dengan layar 360x640 dan papan ketik setinggi 300 px.
+
+4. Apa peran `GlobalKey<FormState>`, `validator`, dan `validate()` saat tombol Simpan ditekan? Berikan satu contoh nilai yang ditolak oleh validasi dan jelaskan mengapa memilih jenis input atau papan ketik saja belum cukup.
+
+`GlobalKey<FormState>` (`_formKey`) adalah "pegangan" ke state `Form`, sehingga kode di luar form (seperti tombol Save) bisa memanggil `validate()` dan `reset()`. `validator` adalah fungsi pada tiap kolom yang mengembalikan pesan error (String) kalau isiannya ditolak, atau `null` kalau valid. Saat Save ditekan, `_formKey.currentState!.validate()` menjalankan semua `validator` sekaligus, menampilkan pesan error di kolom yang bermasalah, lalu mengembalikan `true` hanya kalau semuanya valid. Baru setelah itu dialog ringkasan ditampilkan.
+
+Contoh nilai yang ditolak: nama sertifikasi berisi spasi saja (`"     "`) ditolak dengan pesan "Nama sertifikasi tidak boleh kosong!" karena `trim()`-nya kosong. Contoh lain, di kolom bukti sertifikasi, `coursera.org` ditolak karena ngga diawali `http://` atau `https://`.
+
+Memilih jenis input atau papan ketik saja belum cukup karena itu cuma mengubah **tampilan** papan ketik, bukan isi yang boleh masuk. `TextInputType.url` hanya menampilkan papan ketik yang ada tombol `/` dan `.com`, tapi pengguna tetap bisa mengetik `coursera.org`, menempel teks apa pun, atau mengosongkan kolom wajib. Date picker pun hanya membatasi tanggal, tapi kolom tanggal tetap harus divalidasi supaya ngga kosong. Jadi validasi tetap harus dilakukan di `validator`, sama seperti aturan di model dan form Django yang dipakai sebagai acuan.
