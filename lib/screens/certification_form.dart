@@ -1,13 +1,15 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:myportofolio_mobile/models/certification.dart';
+import 'package:myportofolio_mobile/utils/date_format.dart';
 import 'package:myportofolio_mobile/utils/validators.dart';
+import 'package:myportofolio_mobile/widgets/certification_scope.dart';
+import 'package:myportofolio_mobile/widgets/certification_summary_dialog.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
 
-// Halaman formulir untuk menambah sertifikasi.
-// Kolom-kolomnya mengikuti model Certification pada website Django:
-// title, issuer, category, issued_at, dan credential_url.
-//
-// StatefulWidget dipakai karena halaman ini menyimpan data yang berubah
-// (isian pengguna, kategori, dan tanggal terpilih).
+/// Formulir tambah sertifikasi; kolomnya mengikuti model `Certification` pada
+/// website Django. Data yang valid disimpan ke [CertificationStore].
+///
+/// Berupa StatefulWidget karena menyimpan isian, kategori, dan tanggal terpilih.
 class CertificationFormPage extends StatefulWidget {
   const CertificationFormPage({super.key});
 
@@ -16,23 +18,15 @@ class CertificationFormPage extends StatefulWidget {
 }
 
 class _CertificationFormPageState extends State<CertificationFormPage> {
-  final _formKey = GlobalKey<FormState>();
+  static const _defaultCategory = CertificationCategory.swe;
 
+  final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _issuerController = TextEditingController();
   final _dateController = TextEditingController();
   final _urlController = TextEditingController();
 
-  // Pilihan kategori sama dengan model Certification (kode -> label).
-  static const Map<String, String> _categories = {
-    'swe': 'Software Engineering',
-    'sde': 'Software Development',
-    'dsai': 'Data Science and AI',
-    'cybersec': 'Cyber Security',
-  };
-  static const String _defaultCategory = 'swe';
-
-  String _category = _defaultCategory;
+  CertificationCategory _category = _defaultCategory;
   DateTime? _issuedAt;
 
   @override
@@ -44,28 +38,66 @@ class _CertificationFormPageState extends State<CertificationFormPage> {
     super.dispose();
   }
 
-  // Format tanggal yyyy-MM-dd, sama dengan format DateField pada Django.
-  String _formatDate(DateTime date) {
-    final month = date.month.toString().padLeft(2, '0');
-    final day = date.day.toString().padLeft(2, '0');
-    return '${date.year}-$month-$day';
-  }
-
-  // Membuka date picker. lastDate dibatasi hari ini karena sertifikat
-  // tidak mungkin diterbitkan di masa depan.
   Future<void> _pickDate() async {
     final now = DateTime.now();
+    // lastDate hari ini: sertifikat tidak mungkin terbit di masa depan.
     final picked = await showDatePicker(
       context: context,
       initialDate: _issuedAt ?? now,
       firstDate: DateTime(1990),
       lastDate: now,
     );
-    // Setelah await, widget mungkin sudah dibuang; cek mounted dulu.
     if (picked == null || !mounted) return;
     setState(() {
       _issuedAt = picked;
-      _dateController.text = _formatDate(picked);
+      _dateController.text = formatIsoDate(picked);
+    });
+  }
+
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final url = _urlController.text.trim();
+    final certification = Certification(
+      title: _titleController.text.trim(),
+      issuer: _issuerController.text.trim(),
+      category: _category,
+      issuedAt: _issuedAt!,
+      credentialUrl: url.isEmpty ? null : url,
+    );
+    final store = CertificationScope.read(context);
+    store.add(certification);
+
+    await showDialog<void>(
+      context: context,
+      builder: (_) => CertificationSummaryDialog(certification: certification),
+    );
+    if (!mounted) return;
+
+    _resetForm();
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: const Text('Sertifikasi disimpan.'),
+          // Tanpa persist: false, SnackBar ber-action tidak hilang sendiri
+          // dan akan menutupi tombol di bawah layar.
+          persist: false,
+          action: SnackBarAction(
+            label: 'Batalkan',
+            onPressed: () => store.remove(certification),
+          ),
+        ),
+      );
+  }
+
+  // reset() hanya mengosongkan kolom teks; kategori dan tanggal disimpan di
+  // variabel state sehingga dikembalikan secara manual.
+  void _resetForm() {
+    _formKey.currentState!.reset();
+    setState(() {
+      _category = _defaultCategory;
+      _issuedAt = null;
     });
   }
 
@@ -78,55 +110,89 @@ class _CertificationFormPageState extends State<CertificationFormPage> {
     );
   }
 
-  void _save() {
-    if (!_formKey.currentState!.validate()) return;
+  Widget _requiredTextField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required IconData icon,
+    required String fieldName,
+  }) {
+    return TextFormField(
+      controller: controller,
+      textInputAction: TextInputAction.next,
+      decoration: _decoration(label, hint, icon),
+      validator: (value) => validateRequiredText(value, fieldName: fieldName),
+    );
+  }
 
-    // Isian disalin dulu karena form akan dikosongkan setelah dialog ditutup.
-    final title = _titleController.text.trim();
-    final issuer = _issuerController.text.trim();
-    final category = _categories[_category]!;
-    final issuedAt = _dateController.text;
-    final url = _urlController.text.trim();
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Sertifikasi berhasil ditambahkan!'),
-          content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Nama Sertifikasi: $title'),
-                Text('Penerbit: $issuer'),
-                Text('Kategori: $category'),
-                Text('Tanggal Terbit: $issuedAt'),
-                Text('Bukti Sertifikasi: ${url.isEmpty ? '-' : url}'),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.pop(context);
-                _resetForm();
-              },
-            ),
-          ],
-        );
+  Widget _categoryField() {
+    return DropdownButtonFormField<CertificationCategory>(
+      // isExpanded mencegah overflow saat label kategori panjang.
+      isExpanded: true,
+      initialValue: _defaultCategory,
+      decoration: _decoration('Kategori', '', Icons.category_outlined),
+      items: [
+        for (final category in CertificationCategory.values)
+          DropdownMenuItem(value: category, child: Text(category.label)),
+      ],
+      onChanged: (value) {
+        setState(() => _category = value ?? _defaultCategory);
       },
     );
   }
 
-  // reset() mengosongkan kolom teks; kategori dan tanggal yang disimpan
-  // di variabel state dikembalikan secara manual.
-  void _resetForm() {
-    _formKey.currentState!.reset();
-    setState(() {
-      _category = _defaultCategory;
-      _issuedAt = null;
-    });
+  Widget _dateField() {
+    return TextFormField(
+      controller: _dateController,
+      // Tanggal dipilih lewat date picker, bukan diketik.
+      readOnly: true,
+      onTap: _pickDate,
+      decoration: _decoration(
+        'Tanggal Terbit',
+        'Pilih tanggal',
+        Icons.event_outlined,
+      ),
+      validator: (value) =>
+          validateRequiredDate(value, fieldName: 'Tanggal terbit'),
+    );
+  }
+
+  Widget _urlField() {
+    return TextFormField(
+      controller: _urlController,
+      keyboardType: TextInputType.url,
+      textInputAction: TextInputAction.done,
+      decoration: _decoration(
+        'Bukti Sertifikasi (opsional)',
+        'https://coursera.org/verify/...',
+        Icons.link,
+      ),
+      validator: (value) =>
+          validateOptionalUrl(value, fieldName: 'Bukti sertifikasi'),
+    );
+  }
+
+  Widget _buttons(ColorScheme colorScheme) {
+    return Row(
+      spacing: 12,
+      children: [
+        Expanded(
+          child: OutlinedButton(
+            onPressed: _resetForm,
+            child: const Text('Reset'),
+          ),
+        ),
+        Expanded(
+          child: ElevatedButton(
+            style: ButtonStyle(
+              backgroundColor: WidgetStateProperty.all(colorScheme.primary),
+            ),
+            onPressed: _save,
+            child: const Text('Save', style: TextStyle(color: Colors.white)),
+          ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -145,122 +211,40 @@ class _CertificationFormPageState extends State<CertificationFormPage> {
       drawer: const LeftDrawer(),
       body: Form(
         key: _formKey,
-        // Pesan error muncul setelah pengguna menyentuh kolom dan hilang
-        // otomatis begitu isiannya diperbaiki.
+        // Error muncul setelah kolom disentuh dan hilang saat isian diperbaiki.
         autovalidateMode: AutovalidateMode.onUserInteraction,
-        // SingleChildScrollView menjaga semua kolom dan tombol Simpan tetap
-        // terjangkau di layar sempit atau saat papan ketik tampil.
+        // Scroll menjaga semua kolom dan tombol terjangkau di layar sempit
+        // atau saat papan ketik tampil.
         child: SingleChildScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           child: Center(
-            // Membatasi lebar form di layar lebar (misalnya Chrome).
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 800),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
+                  spacing: 16,
                   children: [
-                    TextFormField(
+                    _requiredTextField(
                       controller: _titleController,
-                      textInputAction: TextInputAction.next,
-                      decoration: _decoration(
-                        'Nama Sertifikasi',
-                        'Meta Backend Developer',
-                        Icons.workspace_premium_outlined,
-                      ),
-                      validator: (value) => validateRequiredText(
-                        value,
-                        fieldName: 'Nama sertifikasi',
-                      ),
+                      label: 'Nama Sertifikasi',
+                      hint: 'Meta Backend Developer',
+                      icon: Icons.workspace_premium_outlined,
+                      fieldName: 'Nama sertifikasi',
                     ),
-                    const SizedBox(height: 16.0),
-
-                    TextFormField(
+                    _requiredTextField(
                       controller: _issuerController,
-                      textInputAction: TextInputAction.next,
-                      decoration: _decoration(
-                        'Nama Penerbit',
-                        'Coursera',
-                        Icons.business_outlined,
-                      ),
-                      validator: (value) => validateRequiredText(
-                        value,
-                        fieldName: 'Nama penerbit',
-                      ),
+                      label: 'Nama Penerbit',
+                      hint: 'Coursera',
+                      icon: Icons.business_outlined,
+                      fieldName: 'Nama penerbit',
                     ),
-                    const SizedBox(height: 16.0),
-
-                    DropdownButtonFormField<String>(
-                      // isExpanded mencegah overflow saat label kategori panjang.
-                      isExpanded: true,
-                      initialValue: _defaultCategory,
-                      decoration: _decoration(
-                        'Kategori',
-                        '',
-                        Icons.category_outlined,
-                      ),
-                      items: _categories.entries
-                          .map(
-                            (entry) => DropdownMenuItem(
-                              value: entry.key,
-                              child: Text(entry.value),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          _category = newValue ?? _defaultCategory;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16.0),
-
-                    TextFormField(
-                      controller: _dateController,
-                      // readOnly: teks tidak diketik, tanggal dipilih lewat picker.
-                      readOnly: true,
-                      onTap: _pickDate,
-                      decoration: _decoration(
-                        'Tanggal Terbit',
-                        'Pilih tanggal',
-                        Icons.event_outlined,
-                      ),
-                      validator: (value) => validateRequiredDate(
-                        value,
-                        fieldName: 'Tanggal terbit',
-                      ),
-                    ),
-                    const SizedBox(height: 16.0),
-
-                    TextFormField(
-                      controller: _urlController,
-                      keyboardType: TextInputType.url,
-                      textInputAction: TextInputAction.done,
-                      decoration: _decoration(
-                        'Bukti Sertifikasi (opsional)',
-                        'https://coursera.org/verify/...',
-                        Icons.link,
-                      ),
-                      validator: (value) => validateOptionalUrl(
-                        value,
-                        fieldName: 'Bukti sertifikasi',
-                      ),
-                    ),
-                    const SizedBox(height: 24.0),
-
-                    ElevatedButton(
-                      style: ButtonStyle(
-                        backgroundColor: WidgetStateProperty.all(
-                          colorScheme.primary,
-                        ),
-                      ),
-                      onPressed: _save,
-                      child: const Text(
-                        'Save',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
+                    _categoryField(),
+                    _dateField(),
+                    _urlField(),
+                    const SizedBox(height: 8),
+                    _buttons(colorScheme),
                   ],
                 ),
               ),

@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'package:myportofolio_mobile/main.dart';
+import 'package:myportofolio_mobile/models/certification.dart';
 
 // Membuka formulir sertifikasi lewat kartu aksi di halaman utama.
 Future<void> openFromCard(WidgetTester tester) async {
@@ -77,7 +78,10 @@ void main() {
       expect(find.text('Add Certification Form'), findsOneWidget);
       // 4 kolom teks (nama, penerbit, tanggal, URL) + 1 dropdown kategori.
       expect(find.byType(TextFormField), findsNWidgets(4));
-      expect(find.byType(DropdownButtonFormField<String>), findsOneWidget);
+      expect(
+        find.byType(DropdownButtonFormField<CertificationCategory>),
+        findsOneWidget,
+      );
     });
 
     testWidgets('dari Drawer: form terbuka', (WidgetTester tester) async {
@@ -164,7 +168,9 @@ void main() {
       await fillValidForm(tester);
 
       // Ganti kategori lewat dropdown.
-      await tester.tap(find.byType(DropdownButtonFormField<String>));
+      await tester.tap(
+        find.byType(DropdownButtonFormField<CertificationCategory>),
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.text('Cyber Security').last);
       await tester.pumpAndSettle();
