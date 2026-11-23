@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:myportofolio_mobile/screens/certification_form.dart';
+import 'package:myportofolio_mobile/screens/certification_list.dart';
 import 'package:myportofolio_mobile/screens/project_form.dart';
 import 'package:myportofolio_mobile/screens/project_list.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
@@ -52,6 +53,12 @@ class MyHomePage extends StatelessWidget {
       Icons.add_circle,
       Colors.green,
       page: (context) => const ProjectFormPage(),
+    ),
+    ItemHomepage(
+      "Lihat Sertifikasi",
+      Icons.verified,
+      Colors.purple,
+      page: (context) => const CertificationListPage(),
     ),
     ItemHomepage(
       "Tambah Sertifikasi",
