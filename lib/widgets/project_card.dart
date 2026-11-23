@@ -26,6 +26,10 @@ class ItemCard extends StatelessWidget {
                 Text(
                   item.name,
                   textAlign: TextAlign.center,
+                  // Maksimal 2 baris agar nama panjang tidak overflow di
+                  // layar sempit.
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(color: Colors.white),
                 ),
               ],

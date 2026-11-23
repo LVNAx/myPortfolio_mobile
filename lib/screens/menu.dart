@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:myportofolio_mobile/screens/certification_form.dart';
 import 'package:myportofolio_mobile/screens/project_form.dart';
 import 'package:myportofolio_mobile/screens/project_list.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
@@ -51,6 +52,12 @@ class MyHomePage extends StatelessWidget {
       Icons.add_circle,
       Colors.green,
       page: (context) => const ProjectFormPage(),
+    ),
+    ItemHomepage(
+      "Tambah Sertifikasi",
+      Icons.workspace_premium,
+      Colors.orange,
+      page: (context) => const CertificationFormPage(),
     ),
     ItemHomepage("Logout", Icons.logout, Colors.red),
   ];
@@ -127,6 +134,9 @@ class MyHomePage extends StatelessWidget {
                     crossAxisSpacing: 10,
                     mainAxisSpacing: 10,
                     crossAxisCount: 3,
+                    // Rasio < 1 membuat kartu sedikit lebih tinggi daripada
+                    // lebarnya, memberi ruang bagi nama tombol yang panjang.
+                    childAspectRatio: 0.9,
                     // shrinkWrap agar ukuran kisi menyesuaikan tinggi konten anak.
                     shrinkWrap: true,
                     children: items.map((ItemHomepage item) {
