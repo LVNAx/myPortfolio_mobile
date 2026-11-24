@@ -247,11 +247,13 @@ Future<void> submitLogin(
   await tester.pumpAndSettle();
 }
 
-/// Membuka formulir proyek lewat kartu "Tambah Proyek".
+/// Membuka formulir proyek lewat kartu "Tambah Proyek". Menambah proyek butuh
+/// login, jadi layar login muncul lebih dulu dan diisi di sini.
 Future<void> openProjectFormWith(WidgetTester tester, ApiClient api) async {
   await pumpApp(tester, apiClient: api);
   await tester.tap(find.text('Tambah Proyek'));
   await tester.pumpAndSettle();
+  await submitLogin(tester);
   // SnackBar dari kartu tampil 4 detik di dasar layar dan dapat menutupi tombol
   // Save. Pengguna sungguhan butuh lebih lama untuk mengisi form, jadi di sini
   // kita menunggu SnackBar hilang.

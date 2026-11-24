@@ -109,39 +109,36 @@ void main() {
   });
 
   group('Mengirim ke backend', () {
-    testWidgets(
-      'belum login: diminta login dulu, lalu proyek dikirim dengan token',
-      (WidgetTester tester) async {
-        final log = <http.Request>[];
-        await openProjectFormWith(tester, backendApiClient(log: log));
-        await fillProjectForm(tester);
+    testWidgets('login saat membuka form, lalu proyek dikirim dengan token', (
+      WidgetTester tester,
+    ) async {
+      final log = <http.Request>[];
+      await openProjectFormWith(tester, backendApiClient(log: log));
+      // Login terjadi saat form dibuka lewat kartu, bukan saat Save.
+      expect(postsTo(log, '/api/v1/auth/token/'), hasLength(1));
+      expect(postsTo(log, '/api/v1/projects/'), isEmpty);
 
-        await tapSaveProject(tester);
-        // Layar login terbuka, dan belum ada POST proyek.
-        expect(find.text('Login'), findsWidgets);
-        expect(postsTo(log, '/api/v1/projects/'), isEmpty);
+      await fillProjectForm(tester);
+      await tapSaveProject(tester);
 
-        await submitLogin(tester);
+      final posts = postsTo(log, '/api/v1/projects/');
+      expect(posts, hasLength(1));
+      expect(posts.single.headers['Authorization'], 'Token tok-1');
+      final body = jsonDecode(posts.single.body) as Map<String, dynamic>;
+      expect(body['title'], 'Aplikasi Mobile');
+      expect(body['role'], 'Mobile developer');
+      expect(body['category'], 'web');
+      expect(body['tech_stack'], 'Flutter, Dart');
+      expect(body['started_at'], '2026-11-01');
+      expect(body.containsKey('ended_at'), isFalse);
+      expect(body.containsKey('id'), isFalse);
 
-        final posts = postsTo(log, '/api/v1/projects/');
-        expect(posts, hasLength(1));
-        expect(posts.single.headers['Authorization'], 'Token tok-1');
-        final body = jsonDecode(posts.single.body) as Map<String, dynamic>;
-        expect(body['title'], 'Aplikasi Mobile');
-        expect(body['role'], 'Mobile developer');
-        expect(body['category'], 'web');
-        expect(body['tech_stack'], 'Flutter, Dart');
-        expect(body['started_at'], '2026-11-01');
-        expect(body.containsKey('ended_at'), isFalse);
-        expect(body.containsKey('id'), isFalse);
-
-        // Dialog 201 Created memakai data dari respons server.
-        expect(find.text('Proyek berhasil ditambahkan!'), findsOneWidget);
-        expect(find.text('Nama Proyek: Aplikasi Mobile'), findsOneWidget);
-        expect(find.text('Kategori: Web Development'), findsOneWidget);
-        expect(find.text('Selesai: Masih berjalan'), findsOneWidget);
-      },
-    );
+      // Dialog 201 Created memakai data dari respons server.
+      expect(find.text('Proyek berhasil ditambahkan!'), findsOneWidget);
+      expect(find.text('Nama Proyek: Aplikasi Mobile'), findsOneWidget);
+      expect(find.text('Kategori: Web Development'), findsOneWidget);
+      expect(find.text('Selesai: Masih berjalan'), findsOneWidget);
+    });
 
     testWidgets('kategori dan tanggal selesai ikut terkirim', (
       WidgetTester tester,
@@ -165,7 +162,6 @@ void main() {
       );
 
       await tapSaveProject(tester);
-      await submitLogin(tester);
 
       final body =
           jsonDecode(postsTo(log, '/api/v1/projects/').single.body)
@@ -175,14 +171,13 @@ void main() {
       expect(body['live_url'], 'https://demo.example.com');
     });
 
-    testWidgets('sudah login: pengiriman berikutnya tanpa layar login', (
+    testWidgets('pengiriman berikutnya tidak meminta login lagi', (
       WidgetTester tester,
     ) async {
       final log = <http.Request>[];
       await openProjectFormWith(tester, backendApiClient(log: log));
       await fillProjectForm(tester);
       await tapSaveProject(tester);
-      await submitLogin(tester);
       await tester.tap(find.text('OK'));
       await tester.pumpAndSettle();
 
@@ -194,11 +189,47 @@ void main() {
       expect(postsTo(log, '/api/v1/projects/'), hasLength(2));
     });
 
-    testWidgets('login dibatalkan: tidak ada proyek yang dikirim', (
+    testWidgets('setelah logout dari Drawer, Save meminta login lagi', (
       WidgetTester tester,
     ) async {
       final log = <http.Request>[];
       await openProjectFormWith(tester, backendApiClient(log: log));
+
+      await tester.tap(find.byIcon(Icons.menu));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Logout'));
+      await tester.pumpAndSettle();
+      // Tunggu SnackBar "Berhasil logout." hilang agar tidak menutupi tombol Save.
+      await tester.pump(const Duration(seconds: 5));
+      await tester.pumpAndSettle();
+
+      await fillProjectForm(tester);
+      await tapSaveProject(tester);
+
+      // Layar login terbuka dan belum ada proyek yang dikirim.
+      expect(find.widgetWithText(ElevatedButton, 'Login'), findsOneWidget);
+      expect(postsTo(log, '/api/v1/projects/'), isEmpty);
+
+      await submitLogin(tester);
+
+      // Login berhasil melanjutkan pengiriman tanpa perlu menekan Save lagi.
+      expect(postsTo(log, '/api/v1/auth/token/'), hasLength(2));
+      expect(postsTo(log, '/api/v1/projects/'), hasLength(1));
+      expect(find.text('Proyek berhasil ditambahkan!'), findsOneWidget);
+    });
+
+    testWidgets('login dibatalkan saat Save: tidak ada proyek yang dikirim', (
+      WidgetTester tester,
+    ) async {
+      final log = <http.Request>[];
+      await openProjectFormWith(tester, backendApiClient(log: log));
+      await tester.tap(find.byIcon(Icons.menu));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Logout'));
+      await tester.pumpAndSettle();
+      // Tunggu SnackBar "Berhasil logout." hilang agar tidak menutupi tombol Save.
+      await tester.pump(const Duration(seconds: 5));
+      await tester.pumpAndSettle();
       await fillProjectForm(tester);
       await tapSaveProject(tester);
 
@@ -215,7 +246,6 @@ void main() {
       await openProjectFormWith(tester, backendApiClient());
       await fillProjectForm(tester);
       await tapSaveProject(tester);
-      await submitLogin(tester);
 
       await tester.tap(find.text('OK'));
       await tester.pumpAndSettle();
@@ -239,12 +269,12 @@ void main() {
       );
       await openProjectFormWith(tester, api);
       await fillProjectForm(tester);
-      await tapSaveProject(tester);
-      await tester.enterText(find.byType(TextFormField).first, 'owner');
-      await tester.enterText(find.byType(TextFormField).last, 'rahasia');
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Login'));
-      await tester.pump(const Duration(milliseconds: 500));
-      await tester.pump(const Duration(milliseconds: 500));
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.widgetWithText(ElevatedButton, 'Save'));
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Save'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
 
       final button = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
       expect(button.onPressed, isNull);
@@ -253,6 +283,9 @@ void main() {
       response.complete(jsonResponse({...sampleProjectJson}, 201));
       await tester.pumpAndSettle();
       expect(find.text('Proyek berhasil ditambahkan!'), findsOneWidget);
+      // Spinner berhenti sebelum dialog muncul, bukan menunggu dialog ditutup.
+      final after = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
+      expect(after.onPressed, isNotNull);
     });
   });
 
@@ -267,7 +300,6 @@ void main() {
         );
         await fillProjectForm(tester);
         await tapSaveProject(tester);
-        await submitLogin(tester);
 
         expect(
           find.text('Session expired. Please log in again.'),
@@ -287,7 +319,6 @@ void main() {
       await openProjectFormWith(tester, backendApiClient(createStatus: 403));
       await fillProjectForm(tester);
       await tapSaveProject(tester);
-      await submitLogin(tester);
 
       expect(
         find.text(
@@ -313,7 +344,6 @@ void main() {
       );
       await fillProjectForm(tester);
       await tapSaveProject(tester);
-      await submitLogin(tester);
 
       expect(
         find.text('Failed (400): tech_stack: Kolom ini wajib diisi.'),
@@ -335,7 +365,6 @@ void main() {
       await openProjectFormWith(tester, api);
       await fillProjectForm(tester);
       await tapSaveProject(tester);
-      await submitLogin(tester);
 
       expect(find.textContaining('Cannot reach the server'), findsOneWidget);
       final button = tester.widget<ElevatedButton>(find.byType(ElevatedButton));

@@ -5,13 +5,6 @@ import 'package:myportofolio_mobile/models/project_category.dart';
 
 import 'test_helpers.dart';
 
-// Membuka halaman form lewat tombol "Tambah Proyek" pada halaman utama.
-Future<void> openProjectForm(WidgetTester tester) async {
-  await pumpApp(tester);
-  await tester.tap(find.text('Tambah Proyek'));
-  await tester.pumpAndSettle();
-}
-
 void main() {
   testWidgets('Halaman menu menampilkan info pemilik dan tombol aksi', (
     WidgetTester tester,
@@ -40,7 +33,11 @@ void main() {
     await tester.tap(find.text('Logout'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Kamu telah menekan tombol Logout!'), findsOneWidget);
+    // Pesan wajib dari Tugas 7 tetap tampil, kini diikuti hasil aksi logout.
+    expect(
+      find.textContaining('Kamu telah menekan tombol Logout!'),
+      findsOneWidget,
+    );
     expect(find.text('Selamat datang di MyPortfolio Mobile!'), findsOneWidget);
   });
 
@@ -71,12 +68,21 @@ void main() {
   testWidgets('Tambah Proyek menampilkan SnackBar dan membuka halaman form', (
     WidgetTester tester,
   ) async {
-    await openProjectForm(tester);
+    await pumpApp(tester, apiClient: backendApiClient());
+
+    await tester.tap(find.text('Tambah Proyek'));
+    await tester.pumpAndSettle();
 
     expect(
       find.text('Kamu telah menekan tombol Tambah Proyek!'),
       findsOneWidget,
     );
+    // Menambah proyek butuh login, jadi layar login muncul lebih dulu.
+    expect(find.widgetWithText(ElevatedButton, 'Login'), findsOneWidget);
+    expect(find.text('Add Project Form'), findsNothing);
+
+    await submitLogin(tester);
+
     expect(find.text('Add Project Form'), findsOneWidget);
     // Judul, peran, deskripsi, teknologi, 2 URL, dan 2 tanggal.
     expect(find.byType(TextFormField), findsNWidgets(8));
@@ -89,10 +95,7 @@ void main() {
   testWidgets('Drawer menampilkan menu dan bisa dipakai untuk navigasi', (
     WidgetTester tester,
   ) async {
-    await pumpApp(
-      tester,
-      apiClient: fakeApiClient(projects: [sampleProjectJson]),
-    );
+    await pumpApp(tester, apiClient: backendApiClient());
 
     await tester.tap(find.byIcon(Icons.menu));
     await tester.pumpAndSettle();
@@ -107,6 +110,8 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    // Add Project butuh login, jadi layar login muncul sebelum form.
+    await submitLogin(tester);
     expect(find.text('Add Project Form'), findsOneWidget);
 
     // Dari halaman form, drawer "View Projects" membuka daftar proyek.
