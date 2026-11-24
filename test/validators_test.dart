@@ -84,4 +84,30 @@ void main() {
       expect(validateOptionalUrl(longUrl, fieldName: 'T'), isNotNull);
     });
   });
+  group('validateEndDate', () {
+    test('tanggal selesai kosong dianggap valid (proyek masih berjalan)', () {
+      expect(validateEndDate('', '2026-11-01'), isNull);
+      expect(validateEndDate(null, '2026-11-01'), isNull);
+    });
+
+    test('belum ada tanggal mulai: tidak ada yang dibandingkan', () {
+      expect(validateEndDate('2026-01-01', ''), isNull);
+    });
+
+    test('sebelum tanggal mulai ditolak dengan pesan seperti di backend', () {
+      expect(
+        validateEndDate('2026-10-31', '2026-11-01'),
+        'Tanggal selesai tidak boleh sebelum tanggal mulai.',
+      );
+    });
+
+    test('sama dengan atau sesudah tanggal mulai diterima', () {
+      expect(validateEndDate('2026-11-01', '2026-11-01'), isNull);
+      expect(validateEndDate('2026-12-01', '2026-11-01'), isNull);
+    });
+
+    test('format tanggal yang tidak valid diabaikan, bukan crash', () {
+      expect(validateEndDate('bukan-tanggal', '2026-11-01'), isNull);
+    });
+  });
 }

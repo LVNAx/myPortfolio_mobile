@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
+import 'package:myportofolio_mobile/models/project_category.dart';
+
 import 'test_helpers.dart';
 
 // Membuka halaman form lewat tombol "Tambah Proyek" pada halaman utama.
@@ -76,52 +78,12 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Add Project Form'), findsOneWidget);
-    expect(find.byType(TextFormField), findsNWidgets(4));
-    expect(find.byType(DropdownButtonFormField<String>), findsOneWidget);
-  });
-
-  testWidgets('Form menolak isian kosong dan menampilkan pesan error', (
-    WidgetTester tester,
-  ) async {
-    await openProjectForm(tester);
-
-    await tester.ensureVisible(find.text('Save'));
-    await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Nama proyek tidak boleh kosong!'), findsOneWidget);
-    expect(find.text('Deskripsi proyek tidak boleh kosong!'), findsOneWidget);
-    // Dialog tidak muncul karena validasi gagal.
-    expect(find.byType(AlertDialog), findsNothing);
-  });
-
-  testWidgets('Form valid menampilkan dialog berisi data lalu direset', (
-    WidgetTester tester,
-  ) async {
-    await openProjectForm(tester);
-
-    final fields = find.byType(TextFormField);
-    await tester.enterText(fields.at(0), 'Aplikasi Mobile');
-    await tester.enterText(fields.at(1), 'Portofolio berbasis Flutter');
-    await tester.enterText(fields.at(2), 'Flutter, Dart');
-    await tester.enterText(fields.at(3), 'https://example.com');
-
-    await tester.ensureVisible(find.text('Save'));
-    await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Proyek berhasil ditambahkan!'), findsOneWidget);
-    expect(find.text('Nama Proyek: Aplikasi Mobile'), findsOneWidget);
-    expect(find.text('Deskripsi: Portofolio berbasis Flutter'), findsOneWidget);
-    expect(find.text('Kategori: Web Development'), findsOneWidget);
-    expect(find.text('Teknologi: Flutter, Dart'), findsOneWidget);
-    expect(find.text('Tautan: https://example.com'), findsOneWidget);
-
-    // OK menutup dialog dan mengosongkan form.
-    await tester.tap(find.text('OK'));
-    await tester.pumpAndSettle();
-    expect(find.byType(AlertDialog), findsNothing);
-    expect(find.text('Aplikasi Mobile'), findsNothing);
+    // Judul, peran, deskripsi, teknologi, 2 URL, dan 2 tanggal.
+    expect(find.byType(TextFormField), findsNWidgets(8));
+    expect(
+      find.byType(DropdownButtonFormField<ProjectCategory>),
+      findsOneWidget,
+    );
   });
 
   testWidgets('Drawer menampilkan menu dan bisa dipakai untuk navigasi', (
