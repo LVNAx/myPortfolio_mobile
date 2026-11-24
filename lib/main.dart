@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:myportofolio_mobile/models/certification_store.dart';
 import 'package:myportofolio_mobile/screens/menu.dart';
 import 'package:myportofolio_mobile/services/api_client.dart';
+import 'package:myportofolio_mobile/services/auth_state.dart';
 import 'package:myportofolio_mobile/widgets/certification_scope.dart';
 import 'package:provider/provider.dart';
 
@@ -30,10 +31,14 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    // MultiProvider menyisipkan objek yang sering dipakai (API client) ke
-    // widget tree sehingga bisa diambil di layar mana pun lewat context.read.
+    // MultiProvider menyisipkan objek yang sering dipakai (API client dan
+    // state autentikasi) ke widget tree sehingga bisa diambil di layar mana
+    // pun lewat context.read atau context.watch.
     return MultiProvider(
-      providers: [Provider.value(value: widget.apiClient)],
+      providers: [
+        Provider.value(value: widget.apiClient),
+        ChangeNotifierProvider(create: (_) => AuthState(widget.apiClient)),
+      ],
       child: CertificationScope(
         store: _certificationStore,
         child: MaterialApp(
