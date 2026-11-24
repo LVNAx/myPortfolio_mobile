@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
-import 'package:myportofolio_mobile/main.dart';
 import 'package:myportofolio_mobile/models/certification.dart';
 
 import 'test_helpers.dart';
@@ -17,7 +16,7 @@ Certification sample(String title, DateTime issuedAt) {
 
 // Menyiapkan aplikasi dengan tiga sertifikasi lalu membuka halaman daftarnya.
 Future<void> openListWithSamples(WidgetTester tester) async {
-  await tester.pumpWidget(const MyApp());
+  await pumpApp(tester);
   storeOf(tester)
     ..add(sample('Lama', DateTime(2024, 1, 1)))
     ..add(sample('Baru', DateTime(2026, 1, 1)))
@@ -42,7 +41,7 @@ void main() {
     testWidgets('menampilkan keadaan kosong dan tombol menuju form', (
       WidgetTester tester,
     ) async {
-      await tester.pumpWidget(const MyApp());
+      await pumpApp(tester);
       await openListFromCard(tester);
 
       expect(find.text('View Certifications'), findsOneWidget);
@@ -202,7 +201,7 @@ void main() {
 
   group('Akses halaman daftar', () {
     testWidgets('dari kartu aksi dan dari Drawer', (WidgetTester tester) async {
-      await tester.pumpWidget(const MyApp());
+      await pumpApp(tester);
       await openListFromCard(tester);
       expect(find.text('View Certifications'), findsOneWidget);
 

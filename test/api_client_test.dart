@@ -7,18 +7,9 @@ import 'package:http/testing.dart';
 import 'package:myportofolio_mobile/models/project.dart';
 import 'package:myportofolio_mobile/services/api_client.dart';
 
-import 'project_model_test.dart' show apiPayload;
+import 'test_helpers.dart';
 
 const _baseUrl = 'http://api.test';
-
-http.Response jsonResponse(Object body, int status) {
-  return http.Response.bytes(
-    utf8.encode(jsonEncode(body)),
-    status,
-    // Sama seperti DRF: application/json tanpa charset.
-    headers: {'content-type': 'application/json'},
-  );
-}
 
 ApiClient clientFor(MockClientHandler handler) {
   return ApiClient(client: MockClient(handler), baseUrl: _baseUrl);
@@ -41,7 +32,7 @@ void main() {
         late http.Request captured;
         final api = clientFor((request) async {
           captured = request;
-          return jsonResponse([apiPayload], 200);
+          return jsonResponse([sampleProjectJson], 200);
         });
 
         final projects = await api.getProjects();
@@ -58,7 +49,7 @@ void main() {
     test('membaca huruf non-ASCII sebagai UTF-8', () async {
       final api = clientFor((_) async {
         return jsonResponse([
-          {...apiPayload, 'title': 'Pengembangan Aplikasi – Café'},
+          {...sampleProjectJson, 'title': 'Pengembangan Aplikasi – Café'},
         ], 200);
       });
 
@@ -91,7 +82,10 @@ void main() {
         late http.Request captured;
         final api = clientFor((request) async {
           captured = request;
-          return jsonResponse({...apiPayload, 'title': 'Dari Flutter'}, 201);
+          return jsonResponse({
+            ...sampleProjectJson,
+            'title': 'Dari Flutter',
+          }, 201);
         });
 
         final created = await api.createProject(_newProject, token: 'abc123');

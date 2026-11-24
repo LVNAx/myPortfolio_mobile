@@ -1,11 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
-import 'package:myportofolio_mobile/main.dart';
+import 'test_helpers.dart';
 
 // Membuka halaman form lewat tombol "Tambah Proyek" pada halaman utama.
 Future<void> openProjectForm(WidgetTester tester) async {
-  await tester.pumpWidget(const MyApp());
+  await pumpApp(tester);
   await tester.tap(find.text('Tambah Proyek'));
   await tester.pumpAndSettle();
 }
@@ -14,7 +14,7 @@ void main() {
   testWidgets('Halaman menu menampilkan info pemilik dan tombol aksi', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const MyApp());
+    await pumpApp(tester);
 
     // InfoCard identitas pemilik.
     expect(find.text('NPM'), findsOneWidget);
@@ -31,7 +31,7 @@ void main() {
   testWidgets('Logout menampilkan SnackBar dan tidak pindah halaman', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const MyApp());
+    await pumpApp(tester);
 
     // Kartu Logout ada di baris kedua grid, jadi scroll dulu seperti pengguna.
     await tester.ensureVisible(find.text('Logout'));
@@ -45,7 +45,10 @@ void main() {
   testWidgets('Lihat Proyek menampilkan SnackBar dan membuka daftar proyek', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const MyApp());
+    await pumpApp(
+      tester,
+      apiClient: fakeApiClient(projects: [sampleProjectJson]),
+    );
 
     await tester.tap(find.text('Lihat Proyek'));
     await tester.pumpAndSettle();
@@ -54,7 +57,7 @@ void main() {
       find.text('Kamu telah menekan tombol Lihat Proyek!'),
       findsOneWidget,
     );
-    expect(find.text('Website Portofolio (Django)'), findsOneWidget);
+    expect(find.text('Website Portofolio'), findsOneWidget);
 
     // Tombol Back sistem (perangkat/browser) membawa pengguna ke halaman utama.
     // Halaman yang punya Drawer menampilkan ikon menu, bukan panah kembali.
@@ -124,7 +127,10 @@ void main() {
   testWidgets('Drawer menampilkan menu dan bisa dipakai untuk navigasi', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const MyApp());
+    await pumpApp(
+      tester,
+      apiClient: fakeApiClient(projects: [sampleProjectJson]),
+    );
 
     await tester.tap(find.byIcon(Icons.menu));
     await tester.pumpAndSettle();
@@ -151,7 +157,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Website Portofolio (Django)'), findsOneWidget);
+    expect(find.text('Website Portofolio'), findsOneWidget);
 
     // Dan "Home" membawa kembali ke halaman utama.
     await tester.tap(find.byIcon(Icons.menu));

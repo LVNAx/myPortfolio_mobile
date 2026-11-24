@@ -2,7 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:myportofolio_mobile/screens/certification_form.dart';
 import 'package:myportofolio_mobile/screens/certification_list.dart';
 import 'package:myportofolio_mobile/screens/project_form.dart';
-import 'package:myportofolio_mobile/screens/project_list.dart';
+import 'package:myportofolio_mobile/screens/project_list_screen.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
 import 'package:myportofolio_mobile/widgets/project_card.dart';
 
@@ -46,7 +46,7 @@ class MyHomePage extends StatelessWidget {
       "Lihat Proyek",
       Icons.folder,
       Colors.blue,
-      page: (context) => const ProjectListPage(),
+      page: (context) => const ProjectListScreen(),
     ),
     ItemHomepage(
       "Tambah Proyek",

@@ -2,32 +2,12 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:myportofolio_mobile/models/project.dart';
 
-// Contoh respons nyata dari ProjectSerializer pada backend Django.
-const Map<String, dynamic> apiPayload = {
-  'id': '7f0c1d3e-1111-4222-8333-444455556666',
-  'title': 'Website Portofolio',
-  'role': 'Full-stack developer',
-  'category': 'web',
-  'category_display': 'Web Development',
-  'description': 'Website portofolio pribadi.',
-  'highlights': 'Memakai Django\nMemakai DRF',
-  'highlight_list': ['Memakai Django', 'Memakai DRF'],
-  'tech_stack': 'Django, HTML, CSS',
-  'thumbnail_url': '/static/img/portfolio.png',
-  'live_url': 'https://example.com',
-  'github_url': 'https://github.com/example/repo',
-  'started_at': '2026-01-10',
-  'ended_at': null,
-  'is_ongoing': true,
-  'star_count': 3,
-  'is_starred': false,
-  'starred_by_names': ['a', 'b', 'c'],
-};
+import 'test_helpers.dart';
 
 void main() {
   group('Project.fromJson', () {
     test('memetakan kunci snake_case ke properti camelCase', () {
-      final project = Project.fromJson(apiPayload);
+      final project = Project.fromJson(sampleProjectJson);
 
       expect(project.id, '7f0c1d3e-1111-4222-8333-444455556666');
       expect(project.title, 'Website Portofolio');
@@ -63,13 +43,13 @@ void main() {
     });
 
     test('abaikan field read-only yang tidak dipakai klien', () {
-      expect(() => Project.fromJson(apiPayload), returnsNormally);
+      expect(() => Project.fromJson(sampleProjectJson), returnsNormally);
     });
   });
 
   group('Project.toJson', () {
     test('tidak mengirim id dan field read-only milik server', () {
-      final json = Project.fromJson(apiPayload).toJson();
+      final json = Project.fromJson(sampleProjectJson).toJson();
 
       expect(json.containsKey('id'), isFalse);
       expect(json.containsKey('category_display'), isFalse);
@@ -77,7 +57,7 @@ void main() {
     });
 
     test('memakai kunci snake_case sesuai API', () {
-      final json = Project.fromJson(apiPayload).toJson();
+      final json = Project.fromJson(sampleProjectJson).toJson();
 
       expect(json['tech_stack'], 'Django, HTML, CSS');
       expect(json['live_url'], 'https://example.com');
@@ -86,11 +66,11 @@ void main() {
     });
 
     test('ended_at dihilangkan saat proyek masih berjalan', () {
-      final ongoing = Project.fromJson(apiPayload).toJson();
+      final ongoing = Project.fromJson(sampleProjectJson).toJson();
       expect(ongoing.containsKey('ended_at'), isFalse);
 
       final finished = Project.fromJson({
-        ...apiPayload,
+        ...sampleProjectJson,
         'ended_at': '2026-03-01',
       }).toJson();
       expect(finished['ended_at'], '2026-03-01');
