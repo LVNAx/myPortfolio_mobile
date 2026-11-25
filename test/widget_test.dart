@@ -1,20 +1,15 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
-import 'package:myportofolio_mobile/main.dart';
+import 'package:myportofolio_mobile/models/project_category.dart';
 
-// Membuka halaman form lewat tombol "Tambah Proyek" pada halaman utama.
-Future<void> openProjectForm(WidgetTester tester) async {
-  await tester.pumpWidget(const MyApp());
-  await tester.tap(find.text('Tambah Proyek'));
-  await tester.pumpAndSettle();
-}
+import 'test_helpers.dart';
 
 void main() {
   testWidgets('Halaman menu menampilkan info pemilik dan tombol aksi', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const MyApp());
+    await pumpApp(tester);
 
     // InfoCard identitas pemilik.
     expect(find.text('NPM'), findsOneWidget);
@@ -31,21 +26,28 @@ void main() {
   testWidgets('Logout menampilkan SnackBar dan tidak pindah halaman', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const MyApp());
+    await pumpApp(tester);
 
     // Kartu Logout ada di baris kedua grid, jadi scroll dulu seperti pengguna.
     await tester.ensureVisible(find.text('Logout'));
     await tester.tap(find.text('Logout'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Kamu telah menekan tombol Logout!'), findsOneWidget);
+    // Pesan wajib dari Tugas 7 tetap tampil, kini diikuti hasil aksi logout.
+    expect(
+      find.textContaining('Kamu telah menekan tombol Logout!'),
+      findsOneWidget,
+    );
     expect(find.text('Selamat datang di MyPortfolio Mobile!'), findsOneWidget);
   });
 
   testWidgets('Lihat Proyek menampilkan SnackBar dan membuka daftar proyek', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const MyApp());
+    await pumpApp(
+      tester,
+      apiClient: fakeApiClient(projects: [sampleProjectJson]),
+    );
 
     await tester.tap(find.text('Lihat Proyek'));
     await tester.pumpAndSettle();
@@ -54,7 +56,7 @@ void main() {
       find.text('Kamu telah menekan tombol Lihat Proyek!'),
       findsOneWidget,
     );
-    expect(find.text('Website Portofolio (Django)'), findsOneWidget);
+    expect(find.text('Website Portofolio'), findsOneWidget);
 
     // Tombol Back sistem (perangkat/browser) membawa pengguna ke halaman utama.
     // Halaman yang punya Drawer menampilkan ikon menu, bukan panah kembali.
@@ -66,65 +68,34 @@ void main() {
   testWidgets('Tambah Proyek menampilkan SnackBar dan membuka halaman form', (
     WidgetTester tester,
   ) async {
-    await openProjectForm(tester);
+    await pumpApp(tester, apiClient: backendApiClient());
+
+    await tester.tap(find.text('Tambah Proyek'));
+    await tester.pumpAndSettle();
 
     expect(
       find.text('Kamu telah menekan tombol Tambah Proyek!'),
       findsOneWidget,
     );
+    // Menambah proyek butuh login, jadi layar login muncul lebih dulu.
+    expect(find.widgetWithText(ElevatedButton, 'Login'), findsOneWidget);
+    expect(find.text('Add Project Form'), findsNothing);
+
+    await submitLogin(tester);
+
     expect(find.text('Add Project Form'), findsOneWidget);
-    expect(find.byType(TextFormField), findsNWidgets(4));
-    expect(find.byType(DropdownButtonFormField<String>), findsOneWidget);
-  });
-
-  testWidgets('Form menolak isian kosong dan menampilkan pesan error', (
-    WidgetTester tester,
-  ) async {
-    await openProjectForm(tester);
-
-    await tester.ensureVisible(find.text('Save'));
-    await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Nama proyek tidak boleh kosong!'), findsOneWidget);
-    expect(find.text('Deskripsi proyek tidak boleh kosong!'), findsOneWidget);
-    // Dialog tidak muncul karena validasi gagal.
-    expect(find.byType(AlertDialog), findsNothing);
-  });
-
-  testWidgets('Form valid menampilkan dialog berisi data lalu direset', (
-    WidgetTester tester,
-  ) async {
-    await openProjectForm(tester);
-
-    final fields = find.byType(TextFormField);
-    await tester.enterText(fields.at(0), 'Aplikasi Mobile');
-    await tester.enterText(fields.at(1), 'Portofolio berbasis Flutter');
-    await tester.enterText(fields.at(2), 'Flutter, Dart');
-    await tester.enterText(fields.at(3), 'https://example.com');
-
-    await tester.ensureVisible(find.text('Save'));
-    await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Proyek berhasil ditambahkan!'), findsOneWidget);
-    expect(find.text('Nama Proyek: Aplikasi Mobile'), findsOneWidget);
-    expect(find.text('Deskripsi: Portofolio berbasis Flutter'), findsOneWidget);
-    expect(find.text('Kategori: Web Development'), findsOneWidget);
-    expect(find.text('Teknologi: Flutter, Dart'), findsOneWidget);
-    expect(find.text('Tautan: https://example.com'), findsOneWidget);
-
-    // OK menutup dialog dan mengosongkan form.
-    await tester.tap(find.text('OK'));
-    await tester.pumpAndSettle();
-    expect(find.byType(AlertDialog), findsNothing);
-    expect(find.text('Aplikasi Mobile'), findsNothing);
+    // Judul, peran, deskripsi, teknologi, 2 URL, dan 2 tanggal.
+    expect(find.byType(TextFormField), findsNWidgets(8));
+    expect(
+      find.byType(DropdownButtonFormField<ProjectCategory>),
+      findsOneWidget,
+    );
   });
 
   testWidgets('Drawer menampilkan menu dan bisa dipakai untuk navigasi', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const MyApp());
+    await pumpApp(tester, apiClient: backendApiClient());
 
     await tester.tap(find.byIcon(Icons.menu));
     await tester.pumpAndSettle();
@@ -139,6 +110,8 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    // Add Project butuh login, jadi layar login muncul sebelum form.
+    await submitLogin(tester);
     expect(find.text('Add Project Form'), findsOneWidget);
 
     // Dari halaman form, drawer "View Projects" membuka daftar proyek.
@@ -151,7 +124,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Website Portofolio (Django)'), findsOneWidget);
+    expect(find.text('Website Portofolio'), findsOneWidget);
 
     // Dan "Home" membawa kembali ke halaman utama.
     await tester.tap(find.byIcon(Icons.menu));

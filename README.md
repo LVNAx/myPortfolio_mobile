@@ -13,45 +13,65 @@ Aplikasi mobile portofolio pribadi yang dibangun menggunakan **Flutter (Dart)**.
 
 - Halaman menu utama berupa `StatelessWidget` (`lib/screens/menu.dart`), terpisah dari `main.dart`
 - 3 **InfoCard** yang menampilkan NPM, Name, dan Class
-- 5 **ItemCard** (Lihat Proyek, Tambah Proyek, Lihat Sertifikasi, Tambah Sertifikasi, Logout) dengan warna latar berbeda yang disimpan di model `ItemHomepage` (tanpa if-else)
+- 5 **ItemCard** (Lihat Proyek, Tambah Proyek, Lihat Sertifikasi, Tambah Sertifikasi, Logout) dengan warna latar berbeda yang disimpan di model `ItemHomepage` (tanpa if-else berdasarkan nama tombol)
 - **SnackBar** "Kamu telah menekan tombol [Nama Tombol]!" saat kartu ditekan
-- **Navigasi** antar halaman dengan `Navigator.push`: *Lihat Proyek* membuka daftar proyek (`lib/screens/project_list.dart`) dan *Tambah Proyek* membuka formulir (`lib/screens/project_form.dart`). Halaman tujuan disimpan di model `ItemHomepage` (atribut `page`), jadi `ItemCard` tetap tanpa if-else
-- **Drawer** (`LeftDrawer` di `lib/widgets/left_drawer.dart`) dengan menu Home, Add Project, Add Certification, View Certifications, dan View Projects, dipasang di semua halaman. Perpindahan lewat Drawer memakai `Navigator.pushReplacement`
-- **Form tambah proyek** (`ProjectFormPage`, `StatefulWidget`): `Form` dengan `GlobalKey`, `TextFormField` (nama, deskripsi, teknologi, tautan), `DropdownButtonFormField` (kategori), validasi field wajib, dan `AlertDialog` yang menampilkan data yang diisi. Data belum disimpan ke database
-- **Form tambah sertifikasi** (`CertificationFormPage`, `lib/screens/certification_form.dart`) dengan kolom yang mengikuti model `Certification` pada website Django: nama sertifikasi dan penerbit (`TextFormField`), kategori (`DropdownButtonFormField`), tanggal terbit (`showDatePicker`), dan bukti sertifikasi berupa URL opsional (papan ketik URL). Validasi menolak isian kosong atau hanya spasi, tag HTML, teks terlalu panjang, dan URL tanpa `http(s)://`. Setelah valid, tombol Save menampilkan ringkasan isian dalam `AlertDialog`
-- **Daftar sertifikasi** (`CertificationListPage`): sertifikasi yang disimpan dari form tampil terurut dari tanggal terbit terbaru (seperti `ordering` pada Django). Ketuk untuk melihat detail, geser ke kiri untuk menghapus. Tersedia keadaan kosong dengan tombol menuju form
-- **Batalkan (undo)**: SnackBar setelah menyimpan atau menghapus punya tombol Batalkan. Form juga punya tombol **Reset**
-- **Data di memori**: `CertificationStore` (`ChangeNotifier`) dibagikan ke semua halaman lewat `CertificationScope` (`InheritedNotifier`), tanpa paket tambahan. Data hilang saat aplikasi ditutup karena belum memakai database
-- **Logika dipisah dari tampilan**: model dan store di `lib/models/`, validator dan pemformat tanggal di `lib/utils/`, semuanya punya unit test
-- **Layout lebih rapi**: `InfoCard` dibagi rata dengan `Expanded` dan `IntrinsicHeight` (tinggi sama walau nama panjang), serta lebar konten dibatasi 800 px agar kartu tidak melebar berlebihan di layar lebar
+- **Drawer** (`LeftDrawer`) dengan menu Home, Add Project, Add Certification, View Certifications, View Projects, serta Login atau Logout sesuai status sesi. Dipasang di semua halaman, dan berpindah halaman memakai `Navigator.pushReplacement`
+- **Layout**: `InfoCard` dibagi rata dengan `Expanded` dan `IntrinsicHeight`, lebar konten dibatasi 800 px agar kartu tidak melebar berlebihan di layar lebar
+
+### Integrasi backend Django (Tutorial 10)
+
+- **Model `Project`** (`lib/models/project.dart`) dengan `@JsonSerializable(fieldRename: FieldRename.snake)`. Kolomnya mengikuti `ProjectSerializer` pada backend (`role`, `category`, `tech_stack`, `live_url`, `github_url`, `started_at`, dan seterusnya), bukan contoh pada teks tutorial. Kode serialisasi (`project.g.dart`) dihasilkan `build_runner` dan tidak di-commit
+- **`ApiClient`** (`lib/services/api_client.dart`): `getProjects`, `createProject`, `obtainToken`, dan `logout`. Respons dibaca sebagai UTF-8 (DRF mengirim `application/json` tanpa charset), dan `ApiException` punya `userMessage` agar yang tampil ke pengguna adalah pesan ramah, bukan body mentah dari server
+- **Daftar proyek** (`ProjectListScreen`) memakai `FutureBuilder` + `RefreshIndicator` (tarik untuk memuat ulang), dengan keadaan loading, galat + tombol Retry, dan daftar kosong. Future dibuat di `initState`, bukan di `build`. Ketuk proyek untuk membuka **detail** (`ProjectDetailScreen`); gambar hanya tampil bila server mengirim `thumbnail_url`
+- **Autentikasi token**: `AuthState` (`ChangeNotifier`) menyimpan token di memori, `LoginScreen` memvalidasi dan mengirim kredensial, dan `ensureLoggedIn()` menjadi guard. `ApiClient` dan `AuthState` disisipkan ke widget tree lewat `MultiProvider`
+- **Aksi terlindungi**: Tambah Proyek (kartu dan Drawer) meminta login lebih dulu. Menekan Save juga memeriksa login lagi, dan bila server menjawab **401** sesi diakhiri lalu pengguna diminta login ulang. Kartu **Logout** dan opsi Logout di Drawer mencabut token di server, dan sesi lokal tetap berakhir walau server atau jaringan gagal
+- **Form proyek** (`ProjectFormScreen`) mengirim `POST /api/v1/projects/` dengan header `Authorization: Token ...`. Kolomnya: nama, peran, kategori (dropdown), deskripsi, teknologi, tautan live dan GitHub (URL opsional), tanggal mulai dan selesai (date picker dengan aturan urutan tanggal seperti di backend). Dialog sukses menampilkan data dari respons server
+
+### Fitur dari tugas sebelumnya
+
+- **Form dan daftar sertifikasi** (`CertificationFormPage`, `CertificationListPage`): kolom mengikuti model `Certification` pada website Django, validasi (kosong atau spasi, tag HTML, panjang, URL), dialog ringkasan, daftar terurut dari tanggal terbit terbaru, hapus dengan geser, serta tombol Batalkan dan Reset. Datanya disimpan di memori lewat `CertificationStore` dan `CertificationScope`, jadi hilang saat aplikasi ditutup
+- **Logika dipisah dari tampilan**: model dan store di `lib/models/`, serta validator dan pemformat tanggal di `lib/utils/`, semuanya punya unit test
 
 ## Tech Stack
 
 - Flutter & Dart
 - Material 3 (`ColorScheme.fromSeed`) melalui paket `material_ui`
+- `http` (jaringan), `provider` (dependency injection dan state), `json_annotation` + `json_serializable` + `build_runner` (serialisasi JSON)
+- GitHub Actions untuk CI/CD
 
 ## Struktur Folder
 
 ```
 lib/
-├── main.dart                 # entry point + MaterialApp + tema
-├── screens/                  # halaman (route)
-│   ├── menu.dart             # MyHomePage, InfoCard, ItemHomepage
-│   ├── project_form.dart     # ProjectFormPage (form tambah proyek)
-│   ├── certification_form.dart # CertificationFormPage (form tambah sertifikasi)
-│   ├── certification_list.dart # CertificationListPage (daftar sertifikasi)
-│   └── project_list.dart     # ProjectListPage (daftar proyek)
+├── main.dart                   # entry point, MultiProvider, MaterialApp, tema
+├── config.dart                 # apiBaseUrl (dapat diganti lewat --dart-define)
 ├── models/
-│   ├── certification.dart        # Certification, CertificationCategory
-│   └── certification_store.dart  # CertificationStore (data di memori)
+│   ├── project.dart            # Project (@JsonSerializable)
+│   ├── project_category.dart   # ProjectCategory
+│   ├── certification.dart      # Certification, CertificationCategory
+│   └── certification_store.dart
+├── services/
+│   ├── api_client.dart         # ApiClient, ApiException
+│   └── auth_state.dart         # AuthState (token sesi)
+├── screens/
+│   ├── menu.dart               # MyHomePage, InfoCard, ItemHomepage
+│   ├── login_screen.dart
+│   ├── project_list_screen.dart
+│   ├── project_detail_screen.dart
+│   ├── project_form_screen.dart
+│   ├── certification_form.dart
+│   └── certification_list.dart
 ├── utils/
-│   ├── date_format.dart      # formatIsoDate
-│   └── validators.dart       # fungsi validator formulir
-└── widgets/                  # komponen yang dipakai ulang
-    ├── certification_scope.dart          # membagikan store ke semua halaman
-    ├── certification_summary_dialog.dart # dialog ringkasan sertifikasi
-    ├── left_drawer.dart      # LeftDrawer (menu samping)
-    └── project_card.dart     # ItemCard (kartu tombol menu)
+│   ├── date_format.dart
+│   └── validators.dart
+└── widgets/
+    ├── auth_guard.dart         # ensureLoggedIn()
+    ├── date_picker_field.dart
+    ├── left_drawer.dart
+    ├── project_card.dart       # ItemCard
+    ├── certification_scope.dart
+    └── certification_summary_dialog.dart
+.github/workflows/main.yaml     # CI (format, analyze, test) dan CD (build APK)
 ```
 
 ## Instruksi Setup
@@ -67,22 +87,41 @@ lib/
    flutter pub get
    ```
 
-3. Cek kualitas kode (harus `No issues found!`)
+3. Hasilkan kode serialisasi JSON (`*.g.dart` tidak di-commit, jadi langkah ini wajib setelah clone dan setiap kali model `Project` diubah)
    ```bash
-   flutter analyze
+   dart run build_runner build --delete-conflicting-outputs
    ```
 
-4. Jalankan test
+4. Cek kualitas kode (harus `No issues found!`) dan jalankan test
    ```bash
+   flutter analyze
    flutter test
    ```
 
-5. Jalankan aplikasi (Chrome paling ringan, atau Android emulator / HP dengan `flutter run`)
+5. Jalankan backend Django ([myPortofolio](https://github.com/LVNAx/myPortofolio)) di terminal lain, dengan `django-cors-headers` terpasang
    ```bash
-   flutter run -d chrome
+   python manage.py migrate
+   python manage.py runserver
    ```
 
+6. Jalankan aplikasi. Alamat API diatur lewat `API_BASE_URL`:
+   ```bash
+   # Chrome / Web
+   flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:8000
+
+   # Android emulator (bawaan http://10.0.2.2:8000, alamat PC host dari dalam emulator)
+   flutter run
+   ```
+   Untuk login dan menambah proyek, pakai akun **superuser** Django (hanya pemilik portofolio yang boleh membuat proyek). Daftar proyek bisa dilihat tanpa login.
+
 > Kalau dibuka di Chrome dengan jendela lebar, kartu menu terlihat besar karena grid 3 kolom berbentuk persegi. Kecilkan jendelanya atau pakai mode perangkat di DevTools (F12 lalu Ctrl+Shift+M) untuk tampilan ala HP.
+
+## CI/CD
+
+Workflow `.github/workflows/main.yaml` berjalan pada push ke `main` dan pada pull request:
+
+- **build (CI)** memakai `very_good_workflows`: menjalankan `build_runner`, memeriksa format (`dart format`), `flutter analyze`, dan `flutter test` beserta cakupan
+- **build_apk (CD)** hanya berjalan setelah `build` berhasil, membangun APK release, dan mengunggahnya sebagai artefak `app-release-apk` pada ringkasan eksekusi Actions. APK memakai `API_BASE_URL` bawaan (`http://10.0.2.2:8000`) kecuali ditambah `--dart-define=API_BASE_URL=<url-deploy>`
 
 
 ### Tugas 7

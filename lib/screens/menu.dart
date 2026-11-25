@@ -1,15 +1,28 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:myportofolio_mobile/screens/certification_form.dart';
 import 'package:myportofolio_mobile/screens/certification_list.dart';
-import 'package:myportofolio_mobile/screens/project_form.dart';
-import 'package:myportofolio_mobile/screens/project_list.dart';
+import 'package:myportofolio_mobile/screens/project_form_screen.dart';
+import 'package:myportofolio_mobile/screens/project_list_screen.dart';
+import 'package:myportofolio_mobile/services/auth_state.dart';
+import 'package:myportofolio_mobile/widgets/auth_guard.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
 import 'package:myportofolio_mobile/widgets/project_card.dart';
+import 'package:provider/provider.dart';
 
-/// Satu tombol menu: nama, ikon, warna, dan halaman tujuan (opsional).
+/// Satu tombol menu: nama, ikon, warna, dan tujuannya.
 ///
-/// Warna dan tujuan disimpan di model agar [ItemCard] bebas dari if-else.
+/// Warna, tujuan, dan syarat login disimpan di model agar [ItemCard] bebas
+/// dari if-else berdasarkan nama tombol.
 class ItemHomepage {
+  ItemHomepage(
+    this.name,
+    this.icon,
+    this.color, {
+    this.page,
+    this.requiresLogin = false,
+    this.action,
+  });
+
   final String name;
   final IconData icon;
   final Color color;
@@ -17,15 +30,37 @@ class ItemHomepage {
   /// Halaman tujuan; bila kosong, tombol hanya menampilkan SnackBar.
   final WidgetBuilder? page;
 
-  ItemHomepage(this.name, this.icon, this.color, {this.page});
+  /// Bila true, pengguna harus login dulu sebelum [page] dibuka.
+  final bool requiresLogin;
 
-  /// Menampilkan SnackBar, lalu membuka [page] bila ada.
-  void open(BuildContext context) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(content: Text("Kamu telah menekan tombol $name!")),
-      );
+  /// Aksi pengganti navigasi (mis. logout). Hasilnya, bila ada, ditampilkan
+  /// sebagai SnackBar.
+  final Future<String?> Function(BuildContext context)? action;
+
+  /// Menampilkan SnackBar, lalu menjalankan [action] atau membuka [page].
+  Future<void> open(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    void show(String message) {
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(message)));
+    }
+
+    final pressed = "Kamu telah menekan tombol $name!";
+    show(pressed);
+
+    final action = this.action;
+    if (action != null) {
+      final message = await action(context);
+      // Hasil aksi digabung ke pesan yang sama, bukan menggantinya, agar pesan
+      // "Kamu telah menekan tombol ..." tetap terbaca.
+      if (message != null) show('$pressed\n$message');
+      return;
+    }
+
+    if (requiresLogin && !await ensureLoggedIn(context)) return;
+    // Setelah await, widget mungkin sudah dibuang; cek mounted dulu.
+    if (!context.mounted) return;
 
     final destination = page;
     if (destination != null) {
@@ -46,13 +81,14 @@ class MyHomePage extends StatelessWidget {
       "Lihat Proyek",
       Icons.folder,
       Colors.blue,
-      page: (context) => const ProjectListPage(),
+      page: (context) => const ProjectListScreen(),
     ),
     ItemHomepage(
       "Tambah Proyek",
       Icons.add_circle,
       Colors.green,
-      page: (context) => const ProjectFormPage(),
+      page: (context) => const ProjectFormScreen(),
+      requiresLogin: true,
     ),
     ItemHomepage(
       "Lihat Sertifikasi",
@@ -66,7 +102,17 @@ class MyHomePage extends StatelessWidget {
       Colors.orange,
       page: (context) => const CertificationFormPage(),
     ),
-    ItemHomepage("Logout", Icons.logout, Colors.red),
+    ItemHomepage(
+      "Logout",
+      Icons.logout,
+      Colors.red,
+      action: (context) async {
+        final auth = context.read<AuthState>();
+        if (!auth.isLoggedIn) return 'Kamu belum login.';
+        await auth.logout();
+        return 'Berhasil logout.';
+      },
+    ),
   ];
 
   @override

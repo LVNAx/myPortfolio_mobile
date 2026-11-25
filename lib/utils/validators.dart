@@ -62,3 +62,18 @@ String? validateOptionalUrl(
   }
   return null;
 }
+
+/// Validator untuk tanggal selesai opsional, dengan aturan yang sama seperti
+/// `ProjectSerializer.validate` pada backend: boleh kosong, tetapi tidak boleh
+/// sebelum tanggal mulai. Kedua tanggal berformat `yyyy-MM-dd`.
+String? validateEndDate(String? endText, String? startText) {
+  final endDate = DateTime.tryParse(endText?.trim() ?? '');
+  final startDate = DateTime.tryParse(startText?.trim() ?? '');
+  if (endDate == null || startDate == null) {
+    return null;
+  }
+  if (endDate.isBefore(startDate)) {
+    return 'Tanggal selesai tidak boleh sebelum tanggal mulai.';
+  }
+  return null;
+}

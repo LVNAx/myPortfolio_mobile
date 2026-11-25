@@ -2,15 +2,44 @@ import 'package:material_ui/material_ui.dart';
 import 'package:myportofolio_mobile/screens/menu.dart';
 import 'package:myportofolio_mobile/screens/certification_form.dart';
 import 'package:myportofolio_mobile/screens/certification_list.dart';
-import 'package:myportofolio_mobile/screens/project_form.dart';
-import 'package:myportofolio_mobile/screens/project_list.dart';
+import 'package:myportofolio_mobile/screens/project_form_screen.dart';
+import 'package:myportofolio_mobile/screens/project_list_screen.dart';
+import 'package:myportofolio_mobile/services/auth_state.dart';
+import 'package:myportofolio_mobile/widgets/auth_guard.dart';
+import 'package:provider/provider.dart';
 
 /// Menu samping yang dipakai di semua halaman agar navigasi selalu seragam.
 class LeftDrawer extends StatelessWidget {
   const LeftDrawer({super.key});
 
+  Future<void> _login(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final loggedIn = await ensureLoggedIn(context);
+    if (!loggedIn || !context.mounted) return;
+    // Tutup Drawer setelah kembali dari layar login.
+    Navigator.pop(context);
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(content: Text('Login berhasil.')));
+  }
+
+  Future<void> _logout(BuildContext context) async {
+    // Diambil sebelum Drawer ditutup, karena context-nya ikut dibuang.
+    final messenger = ScaffoldMessenger.of(context);
+    final auth = context.read<AuthState>();
+    Navigator.pop(context);
+    await auth.logout();
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(content: Text('Berhasil logout.')));
+  }
+
   @override
   Widget build(BuildContext context) {
+    // watch: Drawer dibangun ulang saat status login berubah, sehingga opsi
+    // Login dan Logout bertukar otomatis.
+    final isLoggedIn = context.watch<AuthState>().isLoggedIn;
+
     return Drawer(
       child: ListView(
         children: [
@@ -53,11 +82,14 @@ class LeftDrawer extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.add_circle_outline),
             title: const Text('Add Project'),
-            onTap: () {
+            // Menambah proyek butuh login; layar login muncul bila perlu.
+            onTap: () async {
+              if (!await ensureLoggedIn(context)) return;
+              if (!context.mounted) return;
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const ProjectFormPage(),
+                  builder: (context) => const ProjectFormScreen(),
                 ),
               );
             },
@@ -93,11 +125,24 @@ class LeftDrawer extends StatelessWidget {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const ProjectListPage(),
+                  builder: (context) => const ProjectListScreen(),
                 ),
               );
             },
           ),
+          const Divider(),
+          if (isLoggedIn)
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: const Text('Logout'),
+              onTap: () => _logout(context),
+            )
+          else
+            ListTile(
+              leading: const Icon(Icons.login),
+              title: const Text('Login'),
+              onTap: () => _login(context),
+            ),
         ],
       ),
     );
